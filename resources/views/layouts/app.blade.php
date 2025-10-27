@@ -8,7 +8,6 @@
 </head>
 <body class="bg-[#F3F4F6] text-gray-900 antialiased">
   @include('partials.header')
-  {{-- Search bar drop-down (hidden by default) --}}
 <div id="searchBar" class="hidden border-b bg-white shadow-sm">
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
     <form action="{{ url('/search') }}" method="GET" class="flex items-center gap-2">
