@@ -7,13 +7,6 @@
   ['title' => 'SCHOOL',      'bg' => 'bayangan-3.png'],
   ];
 
-  $popular = [
-    ['name' => 'nvidia rtx 5080','price'=>1199,'status'=>'AVAILABLE','img'=>'/images/gpu.png'],
-    ['name' => 'ryzen 9 9950x3d','price'=>1199,'status'=>'AVAILABLE','img'=>'/images/cpu.png'],
-    ['name' => 'high end pc build','price'=>1199,'status'=>'UNAVAILABLE','img'=>'/images/pc.png'],
-    ['name' => 'ram corsair 16gb 8X','price'=>1199,'status'=>'AVAILABLE','img'=>'/images/ram.png'],
-  ];
-  $latest = $popular;
 @endphp
 
 @extends('layouts.app')
@@ -38,42 +31,40 @@
     OUR CATEGORIES
   </h2>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    @foreach (array_slice($categories, 0, 2) as $cat)
-      <a href="#"
-         class="group relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] transition-transform duration-300 hover:-translate-y-[2px]">
-        <img src="{{ asset('images/'.$cat['bg']) }}"
-             alt="{{ $cat['title'] }}"
-             class="absolute inset-0 w-full h-full object-cover opacity-[0.18] group-hover:opacity-[0.22] transition-opacity duration-300" />
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  @foreach (array_slice($categories, 0, 2) as $cat)
+    <a href="#"
+       class="relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] bg-white">
 
-        <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.92)_40%,rgba(255,255,255,0.96)_100%)]"></div>
+      <img src="{{ asset('images/'.$cat['bg']) }}"
+           alt="{{ $cat['title'] }}"
+           class="absolute inset-0 height="300" width="300" object-cover pointer-events-none" />
 
-        <div class="relative h-40 md:h-44 grid place-items-center px-6">
-          <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
-            {{ $cat['title'] }}
-          </p>
-        </div>
-      </a>
-    @endforeach
-  </div>
+      <div class="relative z-10 h-40 md:h-44 grid place-items-center px-6">
+        <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
+          {{ $cat['title'] }}
+        </p>
+      </div>
+    </a>
+  @endforeach
+</div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-    @foreach (array_slice($categories, 2) as $cat)
-      <a href="#"
-         class="group relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] transition-transform duration-300 hover:-translate-y-[2px]">
-        <img src="{{ asset('images/'.$cat['bg']) }}"
-             alt="{{ $cat['title'] }}"
-             class="absolute inset-0 w-full h-full object-cover opacity-[0.18] group-hover:opacity-[0.22] transition-opacity duration-300" />
-        <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(255,255,255,0.92)_40%,rgba(255,255,255,0.96)_100%)]"></div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+  @foreach (array_slice($categories, 2) as $cat)
+    <a href="#"
+       class="relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] bg-white">
+      <img src="{{ asset('images/'.$cat['bg']) }}"
+           alt="{{ $cat['title'] }}"
+           class="absolute inset-0 height="300" width="300" object-cover pointer-events-none" />
+      <div class="relative z-10 h-36 md:h-40 grid place-items-center px-6">
+        <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
+          {{ $cat['title'] }}
+        </p>
+      </div>
+    </a>
+  @endforeach
+</div>
 
-        <div class="relative h-36 md:h-40 grid place-items-center px-6">
-          <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
-            {{ $cat['title'] }}
-          </p>
-        </div>
-      </a>
-    @endforeach
-  </div>
 </section>
 
 
@@ -87,7 +78,7 @@
         echo '
         <div class="bg-white border rounded-xl shadow-sm overflow-hidden flex flex-col">
           <div class="p-4">
-            <div class="aspect-[4/3] w-full rounded-md bg-gray-200"></div>
+            <div class="aspect-4/3 w-full rounded-md bg-gray-200"></div>
           </div>
           <div class="px-4 pb-4 mt-auto">
             <p class="font-semibold text-sm leading-tight">'.htmlspecialchars($p['name']).'</p>
@@ -102,21 +93,25 @@
   @endphp
 
 
-  <section class="mt-10">
-    <div class="text-center">
-      <h3 class="font-extrabold tracking-wide">OUR POPULAR PRODUCTS</h3>
-      <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
-    </div>
-    {!! $renderCards($popular) !!}
-  </section>
+<section class="mt-10">
+  <div class="text-center">
+    <h3 class="font-extrabold tracking-wide">OUR POPULAR PRODUCTS</h3>
+    <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
+  </div>
+
+  {{-- JANGAN pakai includeWhen dulu — biar kelihatan kalau kosong --}}
+  @include('components.product-grid', ['items' => $popular])
+</section>
+
+<section class="mt-10">
+  <div class="text-center">
+    <h3 class="font-extrabold tracking-wide">OUR LATEST PRODUCTS</h3>
+    <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
+  </div>
+  @include('components.product-grid', ['items' => $latest])
+</section>
 
 
-  <section class="mt-10">
-    <div class="text-center">
-      <h3 class="font-extrabold tracking-wide">OUR LATEST PRODUCTS</h3>
-      <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
-    </div>
-    {!! $renderCards($latest) !!}
-  </section>
+
 </section>
 @endsection
