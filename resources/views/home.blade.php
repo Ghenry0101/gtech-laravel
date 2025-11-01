@@ -67,9 +67,6 @@
 
 </section>
 
-
-
-
   @php
     $renderCards = function($items) {
       echo '<div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">';
@@ -99,7 +96,6 @@
     <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
   </div>
 
-  {{-- JANGAN pakai includeWhen dulu — biar kelihatan kalau kosong --}}
   @include('components.product-grid', ['items' => $popular])
 </section>
 

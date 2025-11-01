@@ -1,15 +1,14 @@
 @php
-  // aman buat array
   $title = $p['title']   ?? '';
-  $price = $p['price']   ?? 0;         // dalam sen
+  $price = $p['price']   ?? 0;         
   $status= $p['status']  ?? 'available';
-  $file  = ltrim(($p['image'] ?? 'PC.png'), '/');  // filename saja
+  $file  = ltrim(($p['image'] ?? 'PC.png'), '/');  
   $src   = asset('images/'.$file);
   $available = $status === 'available';
 @endphp
 
 <div class="rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] bg-white overflow-hidden">
-  {{-- Gambar --}}
+
   <div class="h-48 bg-slate-100">
     <img
       src="{{ $src }}"
@@ -18,7 +17,7 @@
       onerror="this.onerror=null;this.src='{{ asset('images/PC.png') }}'">
   </div>
 
-  {{-- Body --}}
+  
   <div class="p-4">
     <h4 class="font-extrabold text-slate-900">{{ $title }}</h4>
 
