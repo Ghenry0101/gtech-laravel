@@ -18,7 +18,7 @@
     <div class="space-y-4">
       <h1 class="text-3xl md:text-4xl font-black tracking-wide">easy to use</h1>
       <p class="text-sm text-gray-600 max-w-md">"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."</p>
-      <a href="#" class="inline-block px-5 py-2 rounded-md bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
+      <a href="{{ route('products.index', 'cpu') }}" class="inline-block px-5 py-2 rounded-md bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
     </div>
     <div class="w-full">
     <img class=" w-full rounded-lg" src="/images/PC.png" ...>
