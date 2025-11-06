@@ -17,18 +17,52 @@ class Product extends Model
         'description',
         'price',
         'stock',
+        'weight',
+        'height',
+        'length',
+        'width',
         'image',
         'is_active',
     ];
+
+    protected $casts = [
+        'price' => 'integer',
+        'stock' => 'integer',
+        'weight' => 'integer',
+        'height' => 'integer',
+        'length' => 'integer',
+        'width' => 'integer',
+        'is_active' => 'boolean',
+    ];
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($product) {
-            if (!$product->slug) {
-                $product->slug = Str::slug($product->name);
+            $product->slug = $product->slug ?: static::generateUniqueSlug($product->name);
+        });
+
+        static::updating(function ($product) {
+            if ($product->isDirty('name')) {
+                $product->slug = static::generateUniqueSlug($product->name, $product->getKey());
             }
         });
+    }
+
+    protected static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($name) ?: Str::slug(Str::random(8));
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        while (static::where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->exists()) {
+            $slug = $baseSlug.'-'.$suffix++;
+        }
+
+        return $slug;
     }
     public function category()
     {

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminBarangController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\RoleController;
 
 Route::get('/', function () {
@@ -31,6 +33,12 @@ Route::middleware(['auth', 'role:admin_barang'])
     ->name('admin.')
     ->group(function () {
         Route::get('/barang', [AdminBarangController::class, 'index'])->name('barang.dashboard');
+        Route::resource('barang/products', AdminProductController::class)
+            ->names('barang.products')
+            ->except(['show']);
+        Route::resource('barang/categories', AdminCategoryController::class)
+            ->names('barang.categories')
+            ->except(['show']);
     });
 
 require __DIR__.'/auth.php';

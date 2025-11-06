@@ -21,7 +21,12 @@ return new class extends Migration
             $table->string('slug')->unique();       
             $table->text('description')->nullable(); 
             $table->unsignedBigInteger('price');     
-            $table->integer('stock')->default(0);     
+            $table->integer('stock')->default(0);  
+            // data untuk pengiriman (dimensi barang)
+            $table->integer('height')->default(0);   // tinggi (cm)
+            $table->integer('length')->default(0);   // panjang (cm)
+            $table->integer('width')->default(0);    // lebar (cm)
+            $table->integer('weight')->default(0);   // berat (gram)   
             $table->string('image')->nullable();    
             $table->boolean('is_active')->default(true); 
 
