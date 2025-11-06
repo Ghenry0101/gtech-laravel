@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AdminBarangController;
 use App\Http\Controllers\RoleController;
 
 Route::get('/', function () {
@@ -24,4 +25,12 @@ Route::middleware('auth')->group(function () {
 Route::get('/roles', [RoleController::class, 'index']);
 Route::post('/roles', [RoleController::class, 'store']);
 Route::patch('/users/{user}/role', [RoleController::class, 'assignRole']);
+
+Route::middleware(['auth', 'role:admin_barang'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/barang', [AdminBarangController::class, 'index'])->name('barang.dashboard');
+    });
+
 require __DIR__.'/auth.php';
