@@ -15,7 +15,9 @@ class Role
             return redirect()->route('login');
         }
 
-        if (!in_array($user->role, $roles, true)) {
+        $roleName = $user->role?->name;
+
+        if (! $roleName || !in_array($roleName, $roles, true)) {
             abort(403, 'Unauthorized.');
         }
 

@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
+        'phone',
+        'avatar_path',
     ];
 
     /**
@@ -32,6 +35,23 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+
 
     /**
      * Get the attributes that should be cast.
