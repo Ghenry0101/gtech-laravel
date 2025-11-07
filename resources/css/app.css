@@ -15,6 +15,5 @@
   font-family: 'Aerospace';
   src: url('../fonts/Aerospace.ttf') format('truetype'),
        url('../fonts/Aerospace.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
+  font-weight: 300 !important;
 }

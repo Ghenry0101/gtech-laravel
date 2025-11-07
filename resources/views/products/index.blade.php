@@ -13,7 +13,6 @@
 
     <h2 class="text-center font-extrabold tracking-wide">OUR CATEGORIES</h2>
     <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-      {{-- tombol ALL --}}
       <a href="{{ route('products.index') }}"
          class="group bg-white border rounded-xl shadow-sm p-4 flex flex-col items-center gap-2 hover:shadow-md {{ $active ? '' : 'ring-2 ring-slate-900/10' }}">
         <img src="{{ asset('images/prebuilt-icon.png') }}" alt="All" class="w-10 h-10 opacity-70 group-hover:opacity-100">

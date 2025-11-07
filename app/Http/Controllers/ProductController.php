@@ -23,30 +23,22 @@ class ProductController extends Controller
         ];
 
         $all = [
-            // CPU
             ['title' => 'Intel Core i5-12400F', 'price' => 2199000, 'status' => 'available',   'image' => 'images/CPU.png', 'category' => 'cpu'],
             ['title' => 'AMD Ryzen 5 5600',     'price' => 1999000, 'status' => 'available',   'image' => 'images/CPU.png', 'category' => 'cpu'],
 
-            // MOBO
             ['title' => 'ASUS B550-Plus',       'price' => 2499000, 'status' => 'available',   'image' => 'images/moboPC.png', 'category' => 'mobo'],
 
-            // PSU
             ['title' => 'Corsair RM650e',       'price' => 1599000, 'status' => 'available',   'image' => 'images/PSU.png', 'category' => 'psu'],
 
-            // RAM
             ['title' => 'DDR4 16GB 3200',       'price' => 699000,  'status' => 'available',   'image' => 'images/RAM.png', 'category' => 'ram'],
 
-            // HDD/SSD
             ['title' => 'HDD 1TB 7200rpm',      'price' => 649000,  'status' => 'available',   'image' => 'images/HDD.png', 'category' => 'hdd'],
             ['title' => 'SSD 1TB NVMe',         'price' => 1199000, 'status' => 'available',   'image' => 'images/SSD.png', 'category' => 'ssd'],
 
-            // GPU
             ['title' => 'MSI RTX 5080',         'price' => 11990000,'status' => 'available',   'image' => 'images/GPU.png', 'category' => 'gpu'],
 
-            // CASING
             ['title' => 'ATX Tempered Glass',   'price' => 799000,  'status' => 'available',   'image' => 'images/casingPC.png', 'category' => 'casing'],
 
-            // PREBUILT / OFFICE / SCHOOL
             ['title' => 'High End PC Build',    'price' => 15999000,'status' => 'unavailable', 'image' => 'images/PC.png', 'category' => 'prebuilt'],
             ['title' => 'Office PC Basic',      'price' => 4999000, 'status' => 'available',   'image' => 'images/officePC.png', 'category' => 'office'],
             ['title' => 'School Lab PC',        'price' => 3999000, 'status' => 'available',   'image' => 'images/schoolPC.png', 'category' => 'school'],
