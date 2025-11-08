@@ -6,7 +6,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <section class="lg:col-span-2">
-      @if (empty($cart))
+      @if (empty($items))
         <div class="rounded-xl border bg-white p-6 text-center text-slate-500">
           Keranjangmu kosong.
         </div>
@@ -19,10 +19,10 @@
         </div>
 
         <div id="cartList" class="space-y-4">
-          @foreach ($cart as $item)
+          @foreach ($items as $item)
             <article class="bg-white border rounded-xl shadow-[0_6px_20px_-6px_rgba(0,0,0,.15)] p-3" data-id="{{ $item['id'] }}">
               <div class="grid grid-cols-[24px_72px_1fr_auto] items-center gap-3">
-                {{-- checkbox --}}
+                
                 <input type="checkbox" class="item-check size-4 rounded border-slate-300" checked>
 
                 <img src="{{ $item['image'] ?? asset('images/PC.png') }}" alt="{{ $item['title'] }}"

@@ -13,7 +13,7 @@
 @section('title','Home')
 
 @section('content')
-<section class="font-aerospace">
+<section class="font-aerospace font-weight:100">
   <section class="bg-white rounded-xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
     <div class="space-y-4">
       <h1 class="text-3xl md:text-4xl font-black tracking-wide">easy to use</h1>

@@ -6,69 +6,72 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    public function index()
+    public function index(Request $req)
     {
-        $cart = session('cart', []);
-        return view('cart.index', compact('cart'));
+        $items = $req->session()->get('cart', []);  
+        return view('cart.index', compact('items'));
     }
 
-    public function add(Request $request, $id)
+    public function add(Request $req)
     {
-        $data = $request->validate([
-            'title' => 'required|string',
+        // Validasi minimal data yang dikirim dari tombol "Add to Cart"
+        $data = $req->validate([
+            'id'    => 'required',
+            'title' => 'required',
             'price' => 'required|numeric',
             'image' => 'nullable|string',
+            'qty'   => 'nullable|integer|min:1'
         ]);
 
-        $cart = session('cart', []);
-        $found = false;
+        $qty   = $data['qty'] ?? 1;
+        $id    = (string) $data['id'];
 
-        foreach ($cart as &$item) {
-            if ($item['id'] == $id) {
-                $item['qty'] = ($item['qty'] ?? 1) + 1;
-                $found = true;
-                break;
-            }
-        }
-        unset($item);
+        $cart = $req->session()->get('cart', []);
 
-        if (!$found) {
-            $cart[] = [
+        if (isset($cart[$id])) {
+            $cart[$id]['qty'] += $qty; 
+        } else {
+            $cart[$id] = [
                 'id'    => $id,
                 'title' => $data['title'],
                 'price' => (float)$data['price'],
-                'image' => $data['image'] ?? asset('images/PC.png'),
-                'qty'   => 1,
+                'image' => $data['image'] ?? null,
+                'qty'   => $qty,
+                'checked' => true,    
             ];
         }
 
-        session(['cart' => $cart]);
+        $req->session()->put('cart', $cart);
 
-        return redirect()->back()->with('success', 'Berhasil ditambahkan ke keranjang!');
+        return back()->with('ok', 'Ditambahkan ke cart');
     }
 
-    public function update(Request $request, $id)
+    // Update qty / centang
+    public function update(Request $req)
     {
-        $qty = max(1, (int)$request->input('qty', 1));
-        $cart = session('cart', []);
+        $data = $req->validate([
+            'id'      => 'required',
+            'qty'     => 'nullable|integer|min:1',
+            'checked' => 'nullable|boolean',
+        ]);
 
-        foreach ($cart as &$item) {
-            if ($item['id'] == $id) {
-                $item['qty'] = $qty;
-                break;
-            }
+        $cart = $req->session()->get('cart', []);
+        $id = (string)$data['id'];
+
+        if (isset($cart[$id])) {
+            if (isset($data['qty']))     $cart[$id]['qty'] = (int)$data['qty'];
+            if (isset($data['checked'])) $cart[$id]['checked'] = (bool)$data['checked'];
+            $req->session()->put('cart', $cart);
         }
-        unset($item);
 
-        session(['cart' => $cart]);
-        return back()->with('success', 'Kuantitas diperbarui.');
+        return back();
     }
 
-    public function remove($id)
+    public function remove(Request $req, $id)
     {
-        $cart = session('cart', []);
-        $cart = array_values(array_filter($cart, fn($i) => $i['id'] != $id));
-        session(['cart' => $cart]);
-        return back()->with('success', 'Item dihapus dari keranjang.');
+        $cart = $req->session()->get('cart', []);
+        unset($cart[(string)$id]);
+        $req->session()->put('cart', $cart);
+        return back();
     }
 }

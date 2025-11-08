@@ -44,7 +44,6 @@ class ProductController extends Controller
             ['title' => 'School Lab PC',        'price' => 3999000, 'status' => 'available',   'image' => 'images/schoolPC.png', 'category' => 'school'],
         ];
 
-        // Filter kategori
         $active = $category;
         $items  = $active
             ? array_values(array_filter($all, fn ($p) => $p['category'] === $active))
