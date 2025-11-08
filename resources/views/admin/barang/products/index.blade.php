@@ -77,7 +77,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        {{ $product->category_name ?? __('Tanpa kategori') }}
+                                        {{ $product->category?->name ?? __('Tanpa kategori') }}
                                     </td>
                                     <td class="px-6 py-4 font-semibold text-slate-900">
                                         Rp {{ number_format($product->price, 0, ',', '.') }}

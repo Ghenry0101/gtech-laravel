@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->unsignedBigInteger('subtotal')->default(0);
-            $table->string('status')->default('active');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $table->decimal('subtotal', 15, 2)->default(0);
+            $table->enum('status', ['active', 'checked_out', 'abandoned'])->default('active');
             $table->timestamps();
         });
     }

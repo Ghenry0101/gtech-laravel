@@ -13,18 +13,15 @@ return new class extends Migration
     {
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->index();
             $table->string('label')->nullable(); 
             $table->string('recipient_name');
-            $table->string('phone');
-
-            $table->string('street');
-            $table->string('city');
-            $table->string('state')->nullable();
+            $table->string('phone', 20);
+            $table->string('province', 100);
+            $table->string('city', 100);
+            $table->string('district', 100);
             $table->string('postal_code', 10)->nullable();
-            $table->string('country')->default('Indonesia');
-
+            $table->text('detail');
             $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
