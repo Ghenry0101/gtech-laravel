@@ -29,7 +29,6 @@
       <input type="hidden" name="id"    value="{{ $id }}">
       <input type="hidden" name="title" value="{{ $title }}">
       <input type="hidden" name="price" value="{{ $price }}">
-      {{-- simpan PATH saja, bukan URL penuh --}}
       <input type="hidden" name="image" value="{{ $image ?? 'images/PC.png' }}">
       <input type="hidden" name="qty"   value="1">
 

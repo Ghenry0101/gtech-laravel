@@ -23,7 +23,7 @@ class HomeController extends Controller
             ['title' => 'RAM Corsair 16GB 8x',  'price' => 119900, 'status' => 'available',   'image' => 'RAM.png'],
         ];
 
-        $latest = $popular; // sementara
+        $latest = $popular; 
 
         return view('home', compact('categories', 'popular', 'latest'));
     }

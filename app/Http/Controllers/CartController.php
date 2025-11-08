@@ -46,7 +46,6 @@ class CartController extends Controller
         return back()->with('ok', 'Ditambahkan ke cart');
     }
 
-    // Update qty / centang
     public function update(Request $req)
     {
         $data = $req->validate([
