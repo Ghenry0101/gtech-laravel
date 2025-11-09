@@ -79,8 +79,25 @@
                                     <td class="px-6 py-4">
                                         {{ $product->category?->name ?? __('Tanpa kategori') }}
                                     </td>
-                                    <td class="px-6 py-4 font-semibold text-slate-900">
-                                        Rp {{ number_format($product->price, 0, ',', '.') }}
+                                    <td class="px-6 py-4">
+                                        @if ($product->discount_amount)
+                                            <div class="flex flex-col">
+                                                <span class="text-xs text-slate-400 line-through">
+                                                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                                                </span>
+                                                <span class="font-semibold text-emerald-600">
+                                                    Rp {{ number_format($product->final_price, 0, ',', '.') }}
+                                                </span>
+                                                <span class="text-xs text-emerald-600">
+                                                    -{{ number_format($product->discount_percentage ?? 0, 2, ',', '.') }}%
+                                                    (Rp {{ number_format($product->discount_amount ?? 0, 0, ',', '.') }})
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="font-semibold text-slate-900">
+                                                Rp {{ number_format($product->price, 0, ',', '.') }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">

@@ -32,6 +32,10 @@ class UpdateProductRequest extends FormRequest
             'width' => ['required', 'integer', 'min:0'],
             'image_product' => ['nullable', 'image', 'max:3072'],
             'is_active' => ['nullable', 'boolean'],
+            'enable_discount' => ['nullable', 'boolean'],
+            'discount_source' => ['nullable', 'in:percentage,amount'],
+            'discount_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount_amount' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

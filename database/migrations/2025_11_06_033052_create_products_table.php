@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-
-            // relasi opsional ke kategori (kalau tabel categories sudah ada)
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-
             $table->string('name');             
             $table->string('slug')->unique();       
             $table->text('description')->nullable(); 
@@ -29,6 +26,9 @@ return new class extends Migration
             $table->integer('weight')->default(0);   // berat (gram)   
             $table->string('image_product')->nullable();    
             $table->boolean('is_active')->default(true); 
+            $table->enum('discount_type', ['percentage', 'amount'])->nullable();
+            $table->decimal('discount_percentage', 5, 2)->nullable();
+            $table->decimal('discount_amount')->nullable();
 
             $table->timestamps();
         });

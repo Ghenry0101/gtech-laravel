@@ -44,6 +44,7 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
+        $this->normalizeDiscount($data);
 
         if ($request->hasFile('image_product')) {
             $data['image_product'] = $request->file('image_product')->store('products', 'public');
@@ -67,6 +68,7 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
+        $this->normalizeDiscount($data);
 
         if ($request->hasFile('image_product')) {
             if ($product->image_product) {
@@ -93,5 +95,59 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.barang.products.index')
             ->with('status', __('Produk berhasil dihapus.'));
+    }
+
+    protected function normalizeDiscount(array &$data): void
+    {
+        $price = max((int) ($data['price'] ?? 0), 0);
+        $enabled = filter_var($data['enable_discount'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        unset($data['enable_discount']);
+
+        $source = $data['discount_source'] ?? null;
+        unset($data['discount_source']);
+
+        $percentage = array_key_exists('discount_percentage', $data)
+            ? (float) $data['discount_percentage']
+            : null;
+        $amount = array_key_exists('discount_amount', $data)
+            ? (int) $data['discount_amount']
+            : null;
+
+        if (! $enabled || ($percentage === null && $amount === null)) {
+            $data['discount_type'] = null;
+            $data['discount_percentage'] = null;
+            $data['discount_amount'] = null;
+            return;
+        }
+
+        $type = null;
+        if ($source === 'amount' && $amount !== null) {
+            $type = 'amount';
+        } elseif ($source === 'percentage' && $percentage !== null) {
+            $type = 'percentage';
+        } elseif ($amount !== null && $amount > 0) {
+            $type = 'amount';
+        } elseif ($percentage !== null && $percentage > 0) {
+            $type = 'percentage';
+        } else {
+            $type = null;
+        }
+
+        if ($type === 'percentage') {
+            $percentage = min(max($percentage ?? 0, 0), 100);
+            $amount = (int) round($price * ($percentage / 100));
+        } elseif ($type === 'amount') {
+            $amount = (int) min(max($amount ?? 0, 0), $price);
+            $percentage = $price > 0
+                ? round(($amount / $price) * 100, 2)
+                : 0;
+        } else {
+            $percentage = null;
+            $amount = null;
+        }
+
+        $data['discount_type'] = $type;
+        $data['discount_percentage'] = $percentage;
+        $data['discount_amount'] = $amount;
     }
 }

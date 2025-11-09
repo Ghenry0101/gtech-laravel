@@ -23,6 +23,9 @@ class Product extends Model
         'width',
         'image_product',
         'is_active',
+        'discount_type',
+        'discount_percentage',
+        'discount_amount',
     ];
 
     protected $casts = [
@@ -33,6 +36,8 @@ class Product extends Model
         'length' => 'integer',
         'width' => 'integer',
         'is_active' => 'boolean',
+        'discount_percentage' => 'float',
+        'discount_amount' => 'integer',
     ];
 
     protected static function boot()
@@ -80,5 +85,12 @@ class Product extends Model
     public function cartItems()
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function getFinalPriceAttribute(): int
+    {
+        $discount = $this->discount_amount ?? 0;
+
+        return max($this->price - $discount, 0);
     }
 }
