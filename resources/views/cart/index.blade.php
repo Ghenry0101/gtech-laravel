@@ -2,7 +2,7 @@
 
 @section('content')
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 font-aerospace">
-    <h1 class="text-2xl font-extrabold mb-4">OUR CART</h1>
+    <h1 class="text-2xl font-medium mb-4">our cart</h1>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <section class="lg:col-span-2">
@@ -75,7 +75,7 @@
     </section>
 
     <aside class="bg-white border rounded-xl shadow-[0_6px_20px_-6px_rgba(0,0,0,.15)] p-4 h-fit sticky top-20">
-      <h2 class="font-extrabold mb-4">OUR CART</h2>
+      <h2 class="font-medium mb-4">OUR CART</h2>
 
       <div class="space-y-2 text-sm">
         <div class="flex justify-between">
@@ -92,17 +92,17 @@
         </div>
         <hr class="my-2">
         <div class="flex justify-between text-lg">
-          <span class="font-extrabold">Total</span>
+          <span class="font-medium">Total</span>
           <span id="grandTotal" class="font-extrabold">$0.00</span>
         </div>
       </div>
 
       <button id="checkoutBtn"
-              class="w-full mt-5 h-11 rounded-lg bg-slate-900 text-white font-extrabold disabled:opacity-40"
-              disabled>CHECKOUT</button>
+              class="w-full mt-5 h-11 rounded-lg bg-slate-900 text-white font-medium disabled:opacity-40"
+              disabled>checkout</button>
 
       <a href="{{ route('orders.index') }}"
-         class="w-full mt-2 inline-flex justify-center h-11 items-center rounded-lg border font-extrabold hover:bg-slate-50">
+         class="w-full mt-2 inline-flex justify-center h-11 items-center rounded-lg border font-medium hover:bg-slate-50">
         Riwayat
       </a>
     </aside>

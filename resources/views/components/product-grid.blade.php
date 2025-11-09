@@ -24,16 +24,16 @@
         </div>
 
         <div class="p-4">
-          <h4 class="font-extrabold text-slate-900">{{ $title }}</h4>
+          <h4 class="font-medium text-slate-900 ">{{ $title }}</h4>
 
-          <p class="mt-1 text-xs font-bold {{ $status === 'available' ? 'text-green-600' : 'text-red-600' }}">
+          <p class="mt-1 text-xs font-medium {{ $status === 'available' ? 'text-green-600' : 'text-red-600' }}">
             {{ $status === 'available' ? 'AVAILABLE' : 'UNAVAILABLE' }}
           </p>
 
-          <p class="mt-3 font-black">${{ number_format(($price ?? 0)/100, 2) }}</p>
+          <p class="mt-3 font-medium">${{ number_format(($price ?? 0)/100, 2) }}</p>
 
-          <button class="mt-4 w-full h-10 rounded-lg bg-slate-900 text-white text-xs font-extrabold hover:opacity-90">
-            ADD TO CART
+          <button class="mt-4 w-full h-10 rounded-lg bg-slate-900 text-white text-xs font-medium hover:opacity-90">
+            add to cart
           </button>
         </div>
       </div>

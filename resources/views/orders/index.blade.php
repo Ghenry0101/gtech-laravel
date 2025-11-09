@@ -1,7 +1,7 @@
 @include('partials.header')
 
 <main class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 font-aerospace">
-  <h1 class="text-2xl font-extrabold mb-6">Riwayat Pesanan</h1>
+  <h1 class="text-2xl font-medium mb-6">Riwayat Pesanan</h1>
 
   @if(empty($orders))
     <div class="rounded-xl border bg-white p-6 text-slate-500">

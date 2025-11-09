@@ -13,12 +13,12 @@
 @section('title','Home')
 
 @section('content')
-<section class="font-aerospace font-weight:100">
+<section class="font-aerospace font-medium">
   <section class="bg-white rounded-xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
     <div class="space-y-4">
-      <h1 class="text-3xl md:text-4xl font-black tracking-wide">easy to use</h1>
+      <h1 class="text-3xl md:text-4xl font-medium tracking-wide">easy to use</h1>
       <p class="text-sm text-gray-600 max-w-md">"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."</p>
-      <a href="{{ route('products.index', 'cpu') }}" class="inline-block px-5 py-2 rounded-md bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
+      <a href="{{ route('products.index', 'cpu') }}" class="inline-block px-5 py-2 rounded-md bg-black text-white font-medium hover:opacity-90">Shop Now</a>
     </div>
     <div class="w-full">
     <img class=" w-full rounded-lg" src="/images/PC.png" ...>
@@ -27,8 +27,8 @@
 
 
   <section class="mt-10">
-  <h2 class="text-center font-extrabold tracking-wide text-lg md:text-xl mb-4">
-    OUR CATEGORIES
+  <h2 class="text-center font-medium tracking-wide text-lg md:text-xl mb-4">
+    our categories
   </h2>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,8 +92,8 @@
 
 <section class="mt-10">
   <div class="text-center">
-    <h3 class="font-extrabold tracking-wide">OUR POPULAR PRODUCTS</h3>
-    <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
+    <h3 class="font-medium tracking-wide">our popular products</h3>
+    <a href="#" class="text-xs text-gray-500 font-semibold">discover →</a>
   </div>
 
   @include('components.product-grid', ['items' => $popular])
@@ -101,8 +101,8 @@
 
 <section class="mt-10">
   <div class="text-center">
-    <h3 class="font-extrabold tracking-wide">OUR LATEST PRODUCTS</h3>
-    <a href="#" class="text-xs text-gray-500 font-semibold">DISCOVER →</a>
+    <h3 class="font-medium tracking-wide ">out latest products</h3>
+    <a href="#" class="text-xs text-gray-500 font-semibold">discover →</a>
   </div>
   @include('components.product-grid', ['items' => $latest])
 </section>

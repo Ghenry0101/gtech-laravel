@@ -33,8 +33,8 @@
       <input type="hidden" name="qty"   value="1">
 
       <button type="submit"
-        class="w-full h-10 rounded-lg bg-slate-900 text-white text-xs font-extrabold hover:opacity-90">
-        ADD TO CART
+        class="w-full h-10 rounded-lg bg-slate-900 text-white text-xs font-medium hover:opacity-90">
+        add to cart
       </button>
     </form>
   </div>
