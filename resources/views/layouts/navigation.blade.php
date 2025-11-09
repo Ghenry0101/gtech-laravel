@@ -106,13 +106,10 @@
 
             <div class="border-t border-slate-200 bg-white px-4 py-4">
                 <div class="mb-3">
-                    <p class="text-base font-semibold text-slate-900">{{ $user->name }}</p>
-                    <p class="text-sm text-slate-500">{{ $user->email }}</p>
+                    <p class="text-base font-semibold text-slate-900">{{ $adminUser->display_name }}</p>
+                    <p class="text-sm text-slate-500">{{ \Illuminate\Support\Str::headline($adminUser->position) }}</p>
                 </div>
                 <div class="space-y-1">
-                    <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
-                        {{ __('Profile') }}
-                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route($primaryDashboardRoute)" :active="request()->routeIs($primaryDashboardRoute)">
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
