@@ -11,52 +11,33 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'address_id',
-        'order_number',
-        'subtotal',
+        'total_amount',
         'shipping_cost',
-        'total',
-        'status',
-        'note',
-        'paid_at',
-        'shipped_at',
-        'delivered_at',
+        'grand_total',
+        'order_status',
+        'notes',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+        'grand_total' => 'decimal:2',
+    ];
 
-        // Auto-generate order number
-        static::creating(function ($order) {
-            if (!$order->order_number) {
-                $order->order_number = 'GTECH-' . strtoupper(Str::random(8));
-            }
-        });
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
-    // relasi ke user
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    // relasi ke alamat
     public function address()
     {
         return $this->belongsTo(Address::class);
     }
 
-    // relasi ke item-item pesanan
     public function items()
     {
         return $this->hasMany(OrderItem::class);
-    }
-
-    // total hitung otomatis
-    public function getGrandTotalAttribute()
-    {
-        return $this->subtotal + $this->shipping_cost;
     }
 }

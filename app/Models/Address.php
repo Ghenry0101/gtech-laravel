@@ -10,21 +10,24 @@ class Address extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'label',
         'recipient_name',
         'phone',
-        'street',
+        'province',
         'city',
-        'state',
+        'district',
         'postal_code',
-        'country',
+        'detail',
         'is_default',
     ];
 
-    public function user()
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
+
+    public function customer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 }
-

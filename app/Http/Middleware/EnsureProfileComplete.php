@@ -21,13 +21,6 @@ class EnsureProfileComplete
             return $next($request);
         }
 
-        $roleName = $user->role?->name;
-        $adminRoles = ['admin_barang', 'admin_pengiriman', 'admin_keuangan'];
-
-        if (in_array($roleName, $adminRoles, true)) {
-            return $next($request);
-        }
-
         if ($request->routeIs([
             'profile.*',
             'profile.addresses.*',

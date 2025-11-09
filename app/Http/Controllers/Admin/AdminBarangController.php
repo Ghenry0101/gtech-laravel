@@ -62,7 +62,7 @@ class AdminBarangController extends Controller
         return OrderItem::query()
             ->select([
                 'product_id',
-                DB::raw('SUM(qty) as total_qty'),
+                DB::raw('SUM(quantity) as total_qty'),
                 DB::raw('SUM(subtotal) as total_revenue'),
             ])
             ->groupBy('product_id')

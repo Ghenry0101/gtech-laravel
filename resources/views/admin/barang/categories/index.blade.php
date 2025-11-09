@@ -56,15 +56,6 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-3">
-                                @if ($category->is_active)
-                                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                        {{ __('Aktif') }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600">
-                                        {{ __('Nonaktif') }}
-                                    </span>
-                                @endif
                                 <a href="{{ route('admin.barang.categories.edit', $category->id) }}" class="inline-flex items-center rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900">
                                     {{ __('Edit') }}
                                 </a>

@@ -32,10 +32,7 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $data['is_active'] = $request->boolean('is_active');
-
-        Category::create($data);
+        Category::create($request->validated());
 
         return redirect()
             ->route('admin.barang.categories.index')
@@ -49,10 +46,7 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $data = $request->validated();
-        $data['is_active'] = $request->boolean('is_active');
-
-        $category->update($data);
+        $category->update($request->validated());
 
         return redirect()
             ->route('admin.barang.categories.index')
@@ -74,4 +68,3 @@ class CategoryController extends Controller
             ->with('status', __('Kategori berhasil dihapus.'));
     }
 }
-

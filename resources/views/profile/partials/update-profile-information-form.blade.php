@@ -1,6 +1,6 @@
 @php
-    $avatarUrl = $user->avatar_path
-        ? asset('storage/' . $user->avatar_path)
+    $avatarUrl = $user->avatar
+        ? asset('storage/' . $user->avatar)
         : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=111827&color=ffffff';
 
     $phoneValue = old('phone', $user->phone ? preg_replace('/^\+?62/', '', $user->phone) : '');

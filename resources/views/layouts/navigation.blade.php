@@ -1,12 +1,13 @@
 @php
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Facades\Auth;
 
-    $user = Auth::user();
-    $userRole = $user?->role?->name;
-    $isAdminBarang = $userRole === 'admin_barang';
+    $adminUser = Auth::guard('admin')->user();
+    $customerUser = Auth::guard('web')->user();
+    $isProductAdmin = $adminUser?->position === 'product_admin';
 @endphp
 
-@if ($isAdminBarang)
+@if ($isProductAdmin)
     <nav x-data="{ open: false }" class="border-b border-slate-200 bg-white/90 backdrop-blur">
         @php
             $primaryDashboardRoute = 'admin.barang.dashboard';
@@ -52,8 +53,8 @@
 
             <div class="hidden items-center gap-4 sm:flex">
                 <div class="text-right">
-                    <p class="text-sm font-semibold text-slate-900">{{ $user->name }}</p>
-                    <p class="text-xs text-slate-500">{{ \Illuminate\Support\Str::headline($userRole) }}</p>
+                    <p class="text-sm font-semibold text-slate-900">{{ $adminUser->display_name }}</p>
+                    <p class="text-xs text-slate-500">{{ \Illuminate\Support\Str::headline($adminUser->position) }}</p>
                 </div>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -66,9 +67,6 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
                         <x-dropdown-link :href="route($primaryDashboardRoute)">
                             {{ __('Dashboard') }}
                         </x-dropdown-link>
@@ -152,7 +150,7 @@
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="flex items-center gap-2 rounded-md border border-transparent px-3 py-2 text-sm font-medium text-gray-600 transition hover:text-gray-900 focus:outline-none">
-                                <span>{{ Auth::user()->name }}</span>
+                                <span>{{ $customerUser->name }}</span>
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                                 </svg>
@@ -205,8 +203,8 @@
             <div class="border-t border-gray-200 px-4 py-4">
                 @auth
                     <div class="mb-3">
-                        <p class="text-base font-semibold text-gray-900">{{ Auth::user()->name }}</p>
-                        <p class="text-sm text-gray-500">{{ Auth::user()->email }}</p>
+                        <p class="text-base font-semibold text-gray-900">{{ $customerUser->name }}</p>
+                        <p class="text-sm text-gray-500">{{ $customerUser->email }}</p>
                     </div>
                     <div class="space-y-1">
                         <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">

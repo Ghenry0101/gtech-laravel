@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->decimal('subtotal', 15, 2)->default(0);
             $table->enum('status', ['active', 'checked_out', 'abandoned'])->default('active');
             $table->timestamps();

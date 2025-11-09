@@ -60,7 +60,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                                                 @php
-                                                    $imageUrl = $product->image ? asset('storage/'.$product->image) : null;
+                                                    $imageUrl = $product->image_product ? asset('storage/'.$product->image_product) : null;
                                                 @endphp
                                                 @if ($imageUrl)
                                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="h-full w-full object-cover">

@@ -45,8 +45,8 @@ class ProductController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+        if ($request->hasFile('image_product')) {
+            $data['image_product'] = $request->file('image_product')->store('products', 'public');
         }
 
         Product::create($data);
@@ -68,11 +68,11 @@ class ProductController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+        if ($request->hasFile('image_product')) {
+            if ($product->image_product) {
+                Storage::disk('public')->delete($product->image_product);
             }
-            $data['image'] = $request->file('image')->store('products', 'public');
+            $data['image_product'] = $request->file('image_product')->store('products', 'public');
         }
 
         $product->update($data);
@@ -84,8 +84,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+        if ($product->image_product) {
+            Storage::disk('public')->delete($product->image_product);
         }
 
         $product->delete();
@@ -95,4 +95,3 @@ class ProductController extends Controller
             ->with('status', __('Produk berhasil dihapus.'));
     }
 }
-

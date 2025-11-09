@@ -8,7 +8,9 @@ class UpdateCategoryRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role?->name === 'admin_barang';
+        $admin = $this->user('admin');
+
+        return $admin?->position === 'product_admin';
     }
 
     /**
@@ -21,7 +23,6 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:150', 'unique:categories,name,' . $categoryId],
             'description' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

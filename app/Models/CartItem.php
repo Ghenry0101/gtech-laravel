@@ -17,6 +17,11 @@ class CartItem extends Model
         'subtotal',
     ];
 
+    protected $casts = [
+        'price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+    ];
+
     public function cart()
     {
         return $this->belongsTo(Cart::class);

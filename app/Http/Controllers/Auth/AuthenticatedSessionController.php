@@ -29,21 +29,24 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
-        $roleName = $user?->role?->name;
-        $roleRedirects = [
-            'admin_barang' => 'admin.barang.dashboard',
-            'admin_pengiriman' => 'admin.pengiriman.dashboard',
-            'admin_keuangan' => 'admin.keuangan.dashboard',
-        ];
+        $guard = $request->guard();
+        $user = Auth::guard($guard)->user();
 
-        $targetRoute = $roleRedirects[$roleName] ?? 'home';
+        if ($guard === 'admin') {
+            $positionRedirects = [
+                'product_admin' => 'admin.barang.dashboard',
+                'shipping_admin' => 'admin.pengiriman.dashboard',
+                'finance_admin' => 'admin.keuangan.dashboard',
+            ];
 
-        if (! Route::has($targetRoute)) {
-            $targetRoute = 'home';
+            $targetRoute = $positionRedirects[$user?->position] ?? 'admin.barang.dashboard';
+
+            return redirect()->intended(
+                Route::has($targetRoute) ? route($targetRoute) : route('home')
+            );
         }
 
-        return redirect()->intended(route($targetRoute));
+        return redirect()->intended(route('home'));
     }
 
     /**
@@ -52,6 +55,7 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+        Auth::guard('admin')->logout();
 
         $request->session()->invalidate();
 

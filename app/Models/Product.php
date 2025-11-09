@@ -21,7 +21,7 @@ class Product extends Model
         'height',
         'length',
         'width',
-        'image',
+        'image_product',
         'is_active',
     ];
 
@@ -70,7 +70,12 @@ class Product extends Model
     }
     public function reviews()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasManyThrough(
+            Review::class,
+            OrderItem::class,
+            'product_id',
+            'order_item_id'
+        );
     }
     public function cartItems()
     {

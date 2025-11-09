@@ -62,5 +62,6 @@ class Kernel extends HttpKernel
 
         // ✅ Middleware custom kamu
         'role' => \App\Http\Middleware\Role::class,
+        'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
     ];
 }

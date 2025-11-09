@@ -10,18 +10,19 @@ class Review extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'product_id',
+        'order_item_id',
         'rating',
+        'title',
         'comment',
-        'reviewed_at',
+        'image',
     ];
-    public function user()
+
+    protected $casts = [
+        'rating' => 'integer',
+    ];
+
+    public function orderItem()
     {
-        return $this->belongsTo(User::class);
-    }
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(OrderItem::class);
     }
 }

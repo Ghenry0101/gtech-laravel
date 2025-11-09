@@ -19,14 +19,14 @@ class ProfileAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label' => ['required', 'string', 'max:50'],
+            'label' => ['nullable', 'string', 'max:50'],
             'recipient_name' => ['required', 'string', 'max:100'],
             'recipient_phone' => ['required', 'string', 'max:20'],
-            'street' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
-            'state' => ['required', 'string', 'max:100'],
-            'postal_code' => ['required', 'string', 'max:20'],
-            'country' => ['required', 'string', 'max:100'],
+            'district' => ['required', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:10'],
+            'detail' => ['required', 'string'],
             'is_default' => ['nullable', 'boolean'],
         ];
     }

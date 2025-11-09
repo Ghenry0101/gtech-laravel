@@ -14,10 +14,15 @@ class Cart extends Model
 
     protected $fillable = [
         'id',
-        'user_id',
+        'customer_id',
         'subtotal',
         'status',
     ];
+
+    protected $casts = [
+        'subtotal' => 'decimal:2',
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -28,9 +33,9 @@ class Cart extends Model
             }
         });
     }
-    public function user()
+    public function customer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function items()

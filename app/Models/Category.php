@@ -14,8 +14,6 @@ class Category extends Model
         'name',
         'slug',
         'description',
-        'parent_id',
-        'is_active',
     ];
 
     protected static function boot()
@@ -47,9 +45,4 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
-    public function children()
-    {
-        return $this->hasMany(Category::class, 'parent_id');
-    }
-
 }

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->integer('length')->default(0);   // panjang (cm)
             $table->integer('width')->default(0);    // lebar (cm)
             $table->integer('weight')->default(0);   // berat (gram)   
-            $table->string('image')->nullable();    
+            $table->string('image_product')->nullable();    
             $table->boolean('is_active')->default(true); 
 
             $table->timestamps();

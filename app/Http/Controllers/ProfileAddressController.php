@@ -67,7 +67,7 @@ class ProfileAddressController extends Controller
 
     protected function ensureOwner(Request $request, Address $address): void
     {
-        abort_if($address->user_id !== $request->user()->id, 403);
+        abort_if($address->customer_id !== $request->user()->id, 403);
     }
 
     /**

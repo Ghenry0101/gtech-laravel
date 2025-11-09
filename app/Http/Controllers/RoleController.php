@@ -2,42 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use App\Models\User;
+use App\Models\Admin;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
-    // GET /api/roles → ambil semua role
+    private const POSITIONS = [
+        'product_admin' => 'Admin Barang',
+        'shipping_admin' => 'Admin Pengiriman',
+        'finance_admin' => 'Admin Keuangan',
+    ];
+
     public function index()
     {
-        return response()->json(Role::all());
+        $positions = collect(self::POSITIONS)->map(function ($label, $key) {
+            return [
+                'key' => $key,
+                'label' => $label,
+            ];
+        })->values();
+
+        return response()->json($positions);
     }
 
-    // POST /api/roles → tambah role baru
-    public function store(Request $request)
+    public function store()
     {
-        $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name',
-            'display_name' => 'nullable|string',
-        ]);
-
-        $role = Role::create($validated);
-        return response()->json($role, 201);
+        abort(405, 'Admin positions are predefined.');
     }
 
-    public function assignRole(Request $request, User $user)
+    public function assignRole(Request $request, Admin $admin)
     {
         $validated = $request->validate([
-            'role_id' => 'required|exists:roles,id',
+            'position' => ['required', Rule::in(array_keys(self::POSITIONS))],
         ]);
 
-        $user->update(['role_id' => $validated['role_id']]);
-        $user->load('role');
+        $admin->update(['position' => $validated['position']]);
 
         return response()->json([
-            'message' => "Role user berhasil diubah menjadi {$user->role->name}",
-            'user' => $user
+            'message' => "Posisi admin diperbarui menjadi {$validated['position']}",
+            'admin' => $admin->fresh(),
         ]);
     }
 }

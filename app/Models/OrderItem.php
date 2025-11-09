@@ -13,9 +13,14 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_name',
-        'qty',
+        'quantity',
         'price',
         'subtotal',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
     public function order()
     {
@@ -31,7 +36,7 @@ class OrderItem extends Model
         parent::boot();
 
         static::saving(function ($item) {
-            $item->subtotal = $item->price * $item->qty;
+            $item->subtotal = $item->price * $item->quantity;
         });
     }
 }

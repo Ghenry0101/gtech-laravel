@@ -43,12 +43,6 @@
                         <x-input-error class="mt-1" :messages="$errors->get('description')" />
                     </div>
 
-                    <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
-                        <input type="hidden" name="is_active" value="0">
-                        <input id="is_active" type="checkbox" name="is_active" value="1" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500" @checked(old('is_active', (bool) $category->is_active))>
-                        {{ __('Kategori Aktif') }}
-                    </label>
-
                     <div class="flex items-center justify-between border-t border-slate-200 pt-4">
                         <a href="{{ route('admin.barang.categories.index') }}" class="text-sm font-medium text-slate-500 hover:text-slate-700">
                             {{ __('Batal') }}

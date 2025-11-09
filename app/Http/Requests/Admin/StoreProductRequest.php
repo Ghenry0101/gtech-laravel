@@ -8,7 +8,9 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role?->name === 'admin_barang';
+        $admin = $this->user('admin');
+
+        return $admin?->position === 'product_admin';
     }
 
     /**
@@ -28,9 +30,8 @@ class StoreProductRequest extends FormRequest
             'height' => ['required', 'integer', 'min:0'],
             'length' => ['required', 'integer', 'min:0'],
             'width' => ['required', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:3072'],
+            'image_product' => ['nullable', 'image', 'max:3072'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
 }
-

@@ -1,7 +1,7 @@
 @php
     $isEdit = isset($product);
-    $existingImageUrl = $isEdit && data_get($product ?? null, 'image')
-        ? asset('storage/' . data_get($product, 'image'))
+    $existingImageUrl = $isEdit && data_get($product ?? null, 'image_product')
+        ? asset('storage/' . data_get($product, 'image_product'))
         : '';
 @endphp
 
@@ -70,10 +70,10 @@
 
 <div class="grid gap-6 md:grid-cols-2" x-data="{ previewUrl: @js($existingImageUrl) }">
     <div class="space-y-1">
-        <x-input-label for="image" :value="__('Foto Produk')" />
+        <x-input-label for="image_product" :value="__('Foto Produk')" />
         <input
-            id="image"
-            name="image"
+            id="image_product"
+            name="image_product"
             type="file"
             accept="image/*"
             class="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700"
