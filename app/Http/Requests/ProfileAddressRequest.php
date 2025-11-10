@@ -19,14 +19,15 @@ class ProfileAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label' => ['required', 'string', 'max:50'],
+            'label' => ['nullable', 'string', 'max:50'],
             'recipient_name' => ['required', 'string', 'max:100'],
-            'recipient_phone' => ['required', 'string', 'max:20'],
-            'street' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:100'],
-            'state' => ['required', 'string', 'max:100'],
-            'postal_code' => ['required', 'string', 'max:20'],
-            'country' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'max:20'],
+            'detail' => ['required', 'string', 'max:500'],
+            'district' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'province' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:10'],
+            'biteship_area_id' => ['required', 'string', 'max:100'],
             'is_default' => ['nullable', 'boolean'],
         ];
     }

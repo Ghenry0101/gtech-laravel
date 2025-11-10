@@ -14,12 +14,17 @@ class Address extends Model
         'label',
         'recipient_name',
         'phone',
-        'street',
+        'province',
         'city',
-        'state',
+        'district',
         'postal_code',
-        'country',
+        'detail',
         'is_default',
+        'biteship_area_id',
+    ];
+
+    protected $casts = [
+        'is_default' => 'boolean',
     ];
 
     public function user()
@@ -27,4 +32,3 @@ class Address extends Model
         return $this->belongsTo(User::class);
     }
 }
-

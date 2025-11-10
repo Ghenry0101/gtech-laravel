@@ -2,7 +2,7 @@
     use Illuminate\Support\Facades\Route;
 
     $user = Auth::user();
-    $userRole = $user?->role?->name;
+    $userRole = $user?->role?->posisi;
     $isAdminBarang = $userRole === 'admin_barang';
 @endphp
 
@@ -53,7 +53,7 @@
             <div class="hidden items-center gap-4 sm:flex">
                 <div class="text-right">
                     <p class="text-sm font-semibold text-slate-900">{{ $user->name }}</p>
-                    <p class="text-xs text-slate-500">{{ \Illuminate\Support\Str::headline($userRole) }}</p>
+                    <p class="text-xs text-slate-500">{{ $user?->role?->display_name ?? \Illuminate\Support\Str::headline((string) $userRole) }}</p>
                 </div>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -140,6 +140,9 @@
                         {{ __('Beranda') }}
                     </x-nav-link>
                     @auth
+                        <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
+                            {{ __('Keranjang') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
@@ -148,6 +151,11 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
+                @auth
+                    <a href="{{ route('cart.index') }}" class="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600 hover:border-gray-300 hover:text-gray-900">
+                        {{ __('Keranjang') }}
+                    </a>
+                @endauth
                 @auth
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -196,6 +204,9 @@
                     {{ __('Beranda') }}
                 </x-responsive-nav-link>
                 @auth
+                    <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
+                        {{ __('Keranjang') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>

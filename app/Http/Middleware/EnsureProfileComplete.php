@@ -21,7 +21,7 @@ class EnsureProfileComplete
             return $next($request);
         }
 
-        $roleName = $user->role?->name;
+        $roleName = $user->role?->posisi;
         $adminRoles = ['admin_barang', 'admin_pengiriman', 'admin_keuangan'];
 
         if (in_array($roleName, $adminRoles, true)) {

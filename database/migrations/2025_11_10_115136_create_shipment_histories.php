@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('carts', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->index();
-            $table->decimal('subtotal', 15, 2)->default(0);
-            $table->enum('status', ['active', 'checked_out', 'abandoned'])->default('active');
+        Schema::create('shipment_histories', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipment_id')->constrained('shipments')->cascadeOnDelete();
+            $table->enum('status', ['created','picked_up','in_transit','delivered','returned','failed']);
+            $table->text('note')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('carts');
+        Schema::dropIfExists('shipment_histories');
     }
 };

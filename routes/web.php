@@ -1,25 +1,100 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminBarangController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\ProfileAddressController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
+use App\Http\Controllers\MidtransWebhookController;
+use App\Http\Controllers\BiteshipAreaController;
+use App\Models\Product;
+use Illuminate\Support\Facades\Schema;
 
-Route::get('/', function () {
-    return view('home');
+$homePage = function () {
+    if (! Schema::hasTable('products')) {
+        return view('home', [
+            'popular' => [],
+            'latest' => [],
+        ]);
+    }
+
+    $popularProducts = Product::query()
+        ->where('is_active', true)
+        ->orderByDesc('stock')
+        ->orderByDesc('updated_at')
+        ->take(8)
+        ->get();
+
+    $latestProducts = Product::query()
+        ->where('is_active', true)
+        ->latest()
+        ->take(8)
+        ->get();
+
+    $transformProduct = static function (Product $product): array {
+        $imagePath = $product->product_image ? 'storage/'.$product->product_image : 'images/PC.png';
+        $hasDiscount = $product->hasDiscountConfigured();
+        $isDiscountActive = $product->hasDiscountActive();
+        $plannedPrice = $product->discount_price;
+
+        if ($plannedPrice === null && $product->discount_percent !== null) {
+            $plannedPrice = round($product->price - ($product->price * $product->discount_percent / 100), 2);
+        }
+
+        return [
+            'title' => $product->name,
+            'slug' => $product->slug,
+            'status' => $product->stock > 0 ? 'available' : 'unavailable',
+            'price' => $isDiscountActive && $plannedPrice !== null
+                ? (float) $product->effective_price
+                : (float) ($plannedPrice !== null ? $plannedPrice : $product->price),
+            'original_price' => (float) $product->price,
+            'planned_price' => $plannedPrice,
+            'has_discount' => $hasDiscount,
+            'is_discount_active' => $isDiscountActive,
+            'discount_percent' => $product->discount_percent,
+            'discount_start' => optional($product->discount_start)?->format('d M Y H:i'),
+            'discount_end' => optional($product->discount_end)?->format('d M Y H:i'),
+            'image_path' => $imagePath,
+            'stock' => $product->stock,
+        ];
+    };
+
+    return view('home', [
+        'popular' => $popularProducts->map($transformProduct)->all(),
+        'latest' => $latestProducts->map($transformProduct)->all(),
+    ]);
+};
+
+Route::get('/', $homePage);
+Route::get('/home', $homePage)->name('home');
+
+Route::get('/products/{product:slug}', [StorefrontProductController::class, 'show'])
+    ->name('products.show');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
+
+    Route::get('/biteship/areas', BiteshipAreaController::class)->name('biteship.areas.search');
 });
-Route::get('/home', function () {
-    return view('home');
-})->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
 Route::middleware(['auth', 'profile.complete'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/shipping-rates', [CheckoutController::class, 'shippingRates'])->name('checkout.shipping-rates');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -46,3 +121,5 @@ Route::middleware(['auth', 'role:admin_barang'])
     });
 
 require __DIR__.'/auth.php';
+
+Route::post('/midtrans/webhook', MidtransWebhookController::class)->name('midtrans.webhook');

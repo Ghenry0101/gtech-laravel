@@ -4,21 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileAddressRequest;
 use App\Models\Address;
+use App\Services\Biteship\BiteshipService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ProfileAddressController extends Controller
 {
     public function store(ProfileAddressRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $data = $request->validated();
+        $data = $this->mergeAreaData($request->validated());
         $isDefault = $request->boolean('is_default') || ! $user->addresses()->exists();
 
-        $payload = $this->mapPayload($data);
-        $payload['is_default'] = $isDefault;
-
-        $address = $user->addresses()->create($payload);
+        $addressData = array_merge($data, ['is_default' => $isDefault]);
+        $address = $user->addresses()->create($addressData);
 
         if ($isDefault) {
             $user->addresses()->whereKeyNot($address->id)->update(['is_default' => false]);
@@ -31,13 +32,10 @@ class ProfileAddressController extends Controller
     {
         $this->ensureOwner($request, $address);
 
-        $data = $request->validated();
+        $data = $this->mergeAreaData($request->validated());
         $data['is_default'] = $request->boolean('is_default');
 
-        $payload = $this->mapPayload($data);
-        $payload['is_default'] = $data['is_default'];
-
-        $address->update($payload);
+        $address->update($data);
 
         if ($data['is_default']) {
             $request->user()->addresses()->whereKeyNot($address->id)->update(['is_default' => false]);
@@ -70,17 +68,46 @@ class ProfileAddressController extends Controller
         abort_if($address->user_id !== $request->user()->id, 403);
     }
 
-    /**
-     * Normalize payload keys to match database columns.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    protected function mapPayload(array $data): array
+    protected function mergeAreaData(array $data): array
     {
-        $data['phone'] = $data['recipient_phone'];
-        unset($data['recipient_phone']);
+        $area = $this->fetchBiteshipArea($data['biteship_area_id'] ?? '');
+
+        $data['biteship_area_id'] = $area['id'];
+        $data['province'] = $area['province'];
+        $data['city'] = $area['city'];
+        $data['district'] = $area['district'];
+        $data['postal_code'] = $area['postal_code'];
 
         return $data;
+    }
+
+    protected function fetchBiteshipArea(string $areaId): array
+    {
+        if (blank($areaId)) {
+            throw ValidationException::withMessages([
+                'biteship_area_id' => __('Silakan pilih kecamatan/kota dari pencarian Biteship.'),
+            ]);
+        }
+
+        try {
+            $area = BiteshipService::make()->getAreaDetail($areaId);
+        } catch (\Throwable $throwable) {
+            Log::error('Failed to fetch Biteship area detail.', [
+                'area_id' => $areaId,
+                'message' => $throwable->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'biteship_area_id' => __('Gagal memverifikasi wilayah Biteship. Coba ulangi pencarian.'),
+            ]);
+        }
+
+        if (! $area) {
+            throw ValidationException::withMessages([
+                'biteship_area_id' => __('Wilayah Biteship tidak ditemukan. Silakan pilih ulang.'),
+            ]);
+        }
+
+        return $area;
     }
 }

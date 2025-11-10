@@ -40,11 +40,11 @@ class ProfileController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
             }
 
-            $data['avatar_path'] = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
         if (array_key_exists('phone', $data)) {

@@ -13,7 +13,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_name',
-        'qty',
+        'quantity',
         'price',
         'subtotal',
     ];
@@ -31,7 +31,7 @@ class OrderItem extends Model
         parent::boot();
 
         static::saving(function ($item) {
-            $item->subtotal = $item->price * $item->qty;
+            $item->subtotal = $item->price * $item->quantity;
         });
     }
 }

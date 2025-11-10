@@ -18,7 +18,7 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name',
+            'posisi' => 'required|string|max:100|unique:roles,posisi',
             'display_name' => 'nullable|string',
         ]);
 
@@ -36,7 +36,7 @@ class RoleController extends Controller
         $user->load('role');
 
         return response()->json([
-            'message' => "Role user berhasil diubah menjadi {$user->role->name}",
+            'message' => "Role user berhasil diubah menjadi {$user->role->posisi}",
             'user' => $user
         ]);
     }

@@ -60,7 +60,7 @@
                                         <div class="flex items-center gap-3">
                                             <div class="h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                                                 @php
-                                                    $imageUrl = $product->image ? asset('storage/'.$product->image) : null;
+                                                    $imageUrl = $product->product_image ? asset('storage/'.$product->product_image) : null;
                                                 @endphp
                                                 @if ($imageUrl)
                                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
@@ -79,8 +79,55 @@
                                     <td class="px-6 py-4">
                                         {{ $product->category?->name ?? __('Tanpa kategori') }}
                                     </td>
-                                    <td class="px-6 py-4 font-semibold text-slate-900">
-                                        Rp {{ number_format($product->price, 0, ',', '.') }}
+                                    <td class="px-6 py-4">
+                                        @php
+                                            $formatCurrency = static fn ($value) => 'Rp '.number_format($value, 0, ',', '.');
+                                            $formatPercent = static fn ($value) => rtrim(rtrim(number_format($value, 2, ',', '.'), '0'), ',');
+                                            $hasDiscount = $product->hasDiscountConfigured();
+                                            $discountActive = $product->hasDiscountActive();
+                                            $rawDiscountPercent = $product->discount_percent;
+                                            $computedPlannedDiscount = $hasDiscount
+                                                ? ($product->discount_price ?? ($product->price - ($product->price * ($rawDiscountPercent ?? 0) / 100)))
+                                                : null;
+                                            if ($computedPlannedDiscount !== null) {
+                                                $computedPlannedDiscount = max($computedPlannedDiscount, 0);
+                                            }
+                                            if ($rawDiscountPercent === null && $hasDiscount && $product->price > 0 && $computedPlannedDiscount !== null) {
+                                                $rawDiscountPercent = (($product->price - $computedPlannedDiscount) / $product->price) * 100;
+                                            }
+                                            $activePrice = $discountActive ? $product->effective_price : $computedPlannedDiscount;
+                                        @endphp
+                                        <div class="flex flex-col text-sm">
+                                            @if ($hasDiscount && $activePrice !== null)
+                                                <span class="font-semibold {{ $discountActive ? 'text-emerald-600' : 'text-slate-900' }}">
+                                                    {{ $formatCurrency($activePrice) }}
+                                                </span>
+                                                <span class="text-xs text-slate-400 line-through">
+                                                    {{ $formatCurrency($product->price) }}
+                                                </span>
+                                                <span class="mt-1 inline-flex w-fit items-center gap-1 rounded-full {{ $discountActive ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }} px-2 py-0.5 text-[11px] font-semibold">
+                                                    @if ($rawDiscountPercent !== null)
+                                                        {{ __('Diskon :percent%', ['percent' => $formatPercent($rawDiscountPercent)]) }}
+                                                    @else
+                                                        {{ __('Diskon') }}
+                                                    @endif
+                                                </span>
+                                                @php
+                                                    $startLabel = $product->discount_start?->format('d M Y H:i');
+                                                    $endLabel = $product->discount_end?->format('d M Y H:i');
+                                                @endphp
+                                                @if ($startLabel || $endLabel)
+                                                    <span class="text-[11px] text-slate-500">
+                                                        {{ __('Periode: :start - :end', [
+                                                            'start' => $startLabel ?? __('sekarang'),
+                                                            'end' => $endLabel ?? __('tanpa batas'),
+                                                        ]) }}
+                                                    </span>
+                                                @endif
+                                            @else
+                                                <span class="font-semibold text-slate-900">{{ $formatCurrency($product->price) }}</span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">

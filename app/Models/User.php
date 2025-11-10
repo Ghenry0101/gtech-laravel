@@ -23,7 +23,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'phone',
-        'avatar_path',
+        'avatar',
     ];
 
     /**
@@ -44,6 +44,11 @@ class User extends Authenticatable
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function role()

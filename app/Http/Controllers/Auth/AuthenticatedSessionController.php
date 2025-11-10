@@ -30,11 +30,10 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        $roleName = $user?->role?->name;
+        $roleName = $user?->role?->posisi;
         $roleRedirects = [
             'admin_barang' => 'admin.barang.dashboard',
-            'admin_pengiriman' => 'admin.pengiriman.dashboard',
-            'admin_keuangan' => 'admin.keuangan.dashboard',
+            'user' => 'dashboard',
         ];
 
         $targetRoute = $roleRedirects[$roleName] ?? 'home';
@@ -57,6 +56,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return redirect('/');
     }
 }

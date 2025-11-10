@@ -15,15 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('address_id')->nullable()->constrained('addresses')->nullOnDelete();
-            $table->string('order_number')->unique();
-            $table->unsignedBigInteger('subtotal');
-            $table->unsignedBigInteger('shipping_cost')->default(0);
-            $table->unsignedBigInteger('total');
-            $table->string('status')->default('pending'); 
-            $table->timestamp('paid_at')->nullable();
-            $table->timestamp('shipped_at')->nullable();
-            $table->timestamp('delivered_at')->nullable();
-
+            $table->decimal('total_amount', 12, 2)->default(0);
+            $table->decimal('shipping_cost', 12, 2)->default(0);
+            $table->decimal('grand_total', 12, 2)->default(0);
+            $table->enum('order_status', ['pending','processing','shipped','completed','canceled'])->default('pending');
+            $table->text('notes')->nullable();
+            $table->timestamp('order_time')->nullable();
             $table->timestamps();
         });
     }

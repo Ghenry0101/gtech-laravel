@@ -8,7 +8,7 @@ class StoreCategoryRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role?->name === 'admin_barang';
+        return $this->user()?->role?->posisi === 'admin_barang';
     }
 
     /**
@@ -23,4 +23,3 @@ class StoreCategoryRequest extends FormRequest
         ];
     }
 }
-

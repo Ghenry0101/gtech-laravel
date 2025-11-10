@@ -14,24 +14,29 @@ class Order extends Model
         'user_id',
         'address_id',
         'order_number',
-        'subtotal',
+        'total_amount',
         'shipping_cost',
-        'total',
-        'status',
-        'note',
+        'grand_total',
+        'order_status',
+        'notes',
+        'payment_method',
+        'order_time',
         'paid_at',
-        'shipped_at',
-        'delivered_at',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+        'grand_total' => 'decimal:2',
+        'paid_at' => 'datetime',
+        'order_time' => 'datetime',
+    ];
 
-        // Auto-generate order number
-        static::creating(function ($order) {
-            if (!$order->order_number) {
-                $order->order_number = 'GTECH-' . strtoupper(Str::random(8));
+    protected static function booted(): void
+    {
+        static::creating(function (self $order): void {
+            if (! $order->order_number) {
+                $order->order_number = 'GTECH-'.strtoupper(Str::random(8));
             }
         });
     }
@@ -54,9 +59,19 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    // total hitung otomatis
-    public function getGrandTotalAttribute()
+    public function payment()
     {
-        return $this->subtotal + $this->shipping_cost;
+        return $this->hasOne(Payment::class);
+    }
+
+    public function shipment()
+    {
+        return $this->hasOne(Shipment::class);
+    }
+
+    // total hitung otomatis
+    public function getComputedTotalAttribute(): float
+    {
+        return (float) ($this->grand_total ?: ($this->total_amount + $this->shipping_cost));
     }
 }

@@ -1,4 +1,4 @@
-<section x-data="{ showForm: false }">
+﻿<section x-data="{ showForm: false }">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
             {{ __('Alamat Pengiriman') }}
@@ -21,8 +21,8 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <x-input-label for="label" :value="__('Label Alamat (mis. Rumah)')" />
-                <x-text-input id="label" name="label" type="text" class="mt-1 block w-full" :value="old('label')" required />
+                <x-input-label for="label" :value="__('Label Alamat (opsional)')" />
+                <x-text-input id="label" name="label" type="text" class="mt-1 block w-full" :value="old('label')" />
                 <x-input-error class="mt-1" :messages="$errors->get('label')" />
             </div>
             <div>
@@ -35,37 +35,97 @@
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
                 <x-input-label for="address_phone" :value="__('No. Telepon Penerima')" />
-                <x-text-input id="address_phone" name="recipient_phone" type="text" class="mt-1 block w-full" :value="old('recipient_phone')" required />
-                <x-input-error class="mt-1" :messages="$errors->get('recipient_phone')" />
+                <x-text-input id="address_phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone')" required />
+                <x-input-error class="mt-1" :messages="$errors->get('phone')" />
             </div>
             <div>
-                <x-input-label for="postal_code" :value="__('Kode Pos')" />
-                <x-text-input id="postal_code" name="postal_code" type="text" class="mt-1 block w-full" :value="old('postal_code')" required />
+                <x-input-label for="postal_code" :value="__('Kode Pos (otomatis dari Biteship)')" />
+                <x-text-input
+                    id="postal_code"
+                    name="postal_code"
+                    type="text"
+                    class="mt-1 block w-full bg-gray-50"
+                    :value="old('postal_code')"
+                    readonly
+                    data-area-postal
+                />
                 <x-input-error class="mt-1" :messages="$errors->get('postal_code')" />
             </div>
         </div>
 
+        <div
+            class="space-y-2"
+            data-biteship-area-picker
+            data-endpoint="{{ route('biteship.areas.search') }}"
+        >
+            <x-input-label for="area_search" :value="__('Cari Kecamatan/Kota (Biteship)')" />
+            <div class="relative">
+                <x-text-input
+                    id="area_search"
+                    type="text"
+                    class="mt-1 block w-full"
+                    :value="old('district') ? old('district').', '.old('city').', '.old('province').' '.old('postal_code') : ''"
+                    placeholder="{{ __('Contoh: Kebayoran Lama, Jakarta Selatan') }}"
+                    data-area-input
+                    autocomplete="off"
+                />
+                <div
+                    class="absolute z-20 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg"
+                    data-area-results
+                ></div>
+            </div>
+            <p class="text-xs text-gray-500">
+                {{ __('Ketik minimal 3 huruf lalu pilih salah satu hasil agar alamat valid sesuai Biteship.') }}
+            </p>
+            <input type="hidden" name="biteship_area_id" value="{{ old('biteship_area_id') }}" data-area-id>
+            <x-input-error class="mt-1" :messages="$errors->get('biteship_area_id')" />
+        </div>
+
         <div>
-            <x-input-label for="street" :value="__('Alamat Lengkap')" />
-            <textarea id="street" name="street" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('street') }}</textarea>
-            <x-input-error class="mt-1" :messages="$errors->get('street')" />
+            <x-input-label for="detail" :value="__('Alamat Lengkap')" />
+            <textarea id="detail" name="detail" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('detail') }}</textarea>
+            <x-input-error class="mt-1" :messages="$errors->get('detail')" />
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
             <div>
-                <x-input-label for="city" :value="__('Kota')" />
-                <x-text-input id="city" name="city" type="text" class="mt-1 block w-full" :value="old('city')" required />
+                <x-input-label for="district" :value="__('Kecamatan')" />
+                <x-text-input
+                    id="district"
+                    name="district"
+                    type="text"
+                    class="mt-1 block w-full bg-gray-50"
+                    :value="old('district')"
+                    readonly
+                    data-area-district
+                />
+                <x-input-error class="mt-1" :messages="$errors->get('district')" />
+            </div>
+            <div>
+                <x-input-label for="city" :value="__('Kota/Kabupaten')" />
+                <x-text-input
+                    id="city"
+                    name="city"
+                    type="text"
+                    class="mt-1 block w-full bg-gray-50"
+                    :value="old('city')"
+                    readonly
+                    data-area-city
+                />
                 <x-input-error class="mt-1" :messages="$errors->get('city')" />
             </div>
             <div>
-                <x-input-label for="state" :value="__('Provinsi')" />
-                <x-text-input id="state" name="state" type="text" class="mt-1 block w-full" :value="old('state')" required />
-                <x-input-error class="mt-1" :messages="$errors->get('state')" />
-            </div>
-            <div>
-                <x-input-label for="country" :value="__('Negara')" />
-                <x-text-input id="country" name="country" type="text" class="mt-1 block w-full" :value="old('country', 'Indonesia')" required />
-                <x-input-error class="mt-1" :messages="$errors->get('country')" />
+                <x-input-label for="province" :value="__('Provinsi')" />
+                <x-text-input
+                    id="province"
+                    name="province"
+                    type="text"
+                    class="mt-1 block w-full bg-gray-50"
+                    :value="old('province')"
+                    readonly
+                    data-area-province
+                />
+                <x-input-error class="mt-1" :messages="$errors->get('province')" />
             </div>
         </div>
 
@@ -94,10 +154,10 @@
                             @endif
                         </p>
                         <p class="text-sm text-gray-600">
-                            {{ $address->recipient_name }} • {{ $address->phone }}
+                            {{ $address->recipient_name }} - {{ $address->phone }}
                         </p>
                         <p class="text-sm text-gray-500">
-                            {{ $address->street }}, {{ $address->city }}, {{ $address->state }}, {{ $address->postal_code }}, {{ $address->country }}
+                            {{ $address->detail }}, {{ $address->district }}, {{ $address->city }}, {{ $address->province }}@if ($address->postal_code) ({{ $address->postal_code }}) @endif
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -121,7 +181,7 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <x-input-label :for="'label_'.$address->id" :value="__('Label Alamat')" />
-                            <x-text-input :id="'label_'.$address->id" name="label" type="text" class="mt-1 block w-full" :value="$address->label" required />
+                            <x-text-input :id="'label_'.$address->id" name="label" type="text" class="mt-1 block w-full" :value="$address->label" />
                         </div>
                         <div>
                             <x-input-label :for="'recipient_'.$address->id" :value="__('Nama Penerima')" />
@@ -132,31 +192,91 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <x-input-label :for="'phone_'.$address->id" :value="__('No. Telepon')" />
-                            <x-text-input :id="'phone_'.$address->id" name="recipient_phone" type="text" class="mt-1 block w-full" :value="$address->phone" required />
+                            <x-text-input :id="'phone_'.$address->id" name="phone" type="text" class="mt-1 block w-full" :value="$address->phone" required />
                         </div>
                         <div>
-                            <x-input-label :for="'postal_'.$address->id" :value="__('Kode Pos')" />
-                            <x-text-input :id="'postal_'.$address->id" name="postal_code" type="text" class="mt-1 block w-full" :value="$address->postal_code" required />
+                            <x-input-label :for="'postal_'.$address->id" :value="__('Kode Pos (otomatis dari Biteship)')" />
+                            <x-text-input
+                                :id="'postal_'.$address->id"
+                                name="postal_code"
+                                type="text"
+                                class="mt-1 block w-full bg-gray-100"
+                                :value="$address->postal_code"
+                                readonly
+                                data-area-postal
+                            />
                         </div>
                     </div>
 
+                    <div
+                        class="space-y-2"
+                        data-biteship-area-picker
+                        data-endpoint="{{ route('biteship.areas.search') }}"
+                    >
+                        <x-input-label :for="'area_search_'.$address->id" :value="__('Cari Kecamatan/Kota (Biteship)')" />
+                        <div class="relative">
+                            <x-text-input
+                                :id="'area_search_'.$address->id"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $address->district }}, {{ $address->city }}, {{ $address->province }} {{ $address->postal_code }}"
+                                placeholder="{{ __('Contoh: Kebayoran Lama, Jakarta Selatan') }}"
+                                data-area-input
+                                autocomplete="off"
+                            />
+                            <div
+                                class="absolute z-20 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg"
+                                data-area-results
+                            ></div>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            {{ __('Pilih salah satu hasil agar data kecamatan/kota mengikuti standar Biteship.') }}
+                        </p>
+                        <input type="hidden" name="biteship_area_id" value="{{ $address->biteship_area_id }}" data-area-id>
+                        <x-input-error class="mt-1" :messages="$errors->get('biteship_area_id')" />
+                    </div>
+
                     <div>
-                        <x-input-label :for="'street_'.$address->id" :value="__('Alamat Lengkap')" />
-                        <textarea :id="'street_'.$address->id" name="street" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ $address->street }}</textarea>
+                        <x-input-label :for="'detail_'.$address->id" :value="__('Alamat Lengkap')" />
+                        <textarea :id="'detail_'.$address->id" name="detail" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ $address->detail }}</textarea>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-3">
                         <div>
-                            <x-input-label :for="'city_'.$address->id" :value="__('Kota')" />
-                            <x-text-input :id="'city_'.$address->id" name="city" type="text" class="mt-1 block w-full" :value="$address->city" required />
+                            <x-input-label :for="'district_'.$address->id" :value="__('Kecamatan')" />
+                            <x-text-input
+                                :id="'district_'.$address->id"
+                                name="district"
+                                type="text"
+                                class="mt-1 block w-full bg-gray-100"
+                                :value="$address->district"
+                                readonly
+                                data-area-district
+                            />
                         </div>
                         <div>
-                            <x-input-label :for="'state_'.$address->id" :value="__('Provinsi')" />
-                            <x-text-input :id="'state_'.$address->id" name="state" type="text" class="mt-1 block w-full" :value="$address->state" required />
+                            <x-input-label :for="'city_'.$address->id" :value="__('Kota/Kabupaten')" />
+                            <x-text-input
+                                :id="'city_'.$address->id"
+                                name="city"
+                                type="text"
+                                class="mt-1 block w-full bg-gray-100"
+                                :value="$address->city"
+                                readonly
+                                data-area-city
+                            />
                         </div>
                         <div>
-                            <x-input-label :for="'country_'.$address->id" :value="__('Negara')" />
-                            <x-text-input :id="'country_'.$address->id" name="country" type="text" class="mt-1 block w-full" :value="$address->country" required />
+                            <x-input-label :for="'province_'.$address->id" :value="__('Provinsi')" />
+                            <x-text-input
+                                :id="'province_'.$address->id"
+                                name="province"
+                                type="text"
+                                class="mt-1 block w-full bg-gray-100"
+                                :value="$address->province"
+                                readonly
+                                data-area-province
+                            />
                         </div>
                     </div>
 
@@ -179,3 +299,5 @@
         @endforelse
     </div>
 </section>
+
+
