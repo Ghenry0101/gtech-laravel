@@ -168,7 +168,7 @@ function recalc() {
     const input = form.querySelector('.qty-input');
     if (e.target.classList.contains('qty-minus')) {
       input.value = Math.max(1, parseInt(input.value || '1', 10) - 1);
-      form.submit(); // kirim ke /cart/update/{id}
+      form.submit(); 
     }
     if (e.target.classList.contains('qty-plus')) {
       input.value = Math.max(1, parseInt(input.value || '1', 10) + 1);

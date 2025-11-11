@@ -10,7 +10,7 @@
 
 <div class="rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,.15)] bg-white overflow-hidden">
 
-  <a href="#" class="block">
+  <a href="{{ route('products.show', $slug) }}" class="block">
     <div class="h-48 bg-slate-100">
       <img
         src="{{ asset($image ?? 'images/PC.png') }}"

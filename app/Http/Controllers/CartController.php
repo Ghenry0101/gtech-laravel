@@ -14,7 +14,6 @@ class CartController extends Controller
 
     public function add(Request $req)
     {
-        // Validasi minimal data yang dikirim dari tombol "Add to Cart"
         $data = $req->validate([
             'id'    => 'required',
             'title' => 'required',

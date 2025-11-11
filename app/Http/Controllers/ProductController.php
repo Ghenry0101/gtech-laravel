@@ -55,4 +55,53 @@ class ProductController extends Controller
             'active'     => $active,
         ]);
     }
+    //  public function show(string $slug)
+    // {
+    //     $p = config("products.$slug.items");
+    //     abort_if(!$p, 404);
+
+    //     // siapkan nilai turunan agar Blade rapi
+    //     $p['harga_fmt'] = '$' . number_format((float)($p['harga'] ?? 0), 2);
+    //     $p['status_label'] = ($p['status'] ?? '') === 'available' ? 'AVAILABLE' : 'UNAVAILABLE';
+    //     $p['image_full'] = asset($p['gambar_produk'] ?? 'images/PC.png');
+    //     $p['gallery_full'] = array_map(fn($g) => asset($g), $p['gallery'] ?? []);
+
+    //     return view('products.show', [
+    //         'p'    => $p,
+    //         'slug' => $slug,
+    //         'reviews' => config("products.$slug.ulasan", []),
+    //     ]);
+    // }
+
+    public function showBySlug(string $slug)
+    {
+        $product = collect(config('products.items', []))
+            ->first(fn($p) => ($p['slug'] ?? Str::slug($p['nama_produk'])) === $slug);
+
+        abort_if(!$product, 404);
+
+        return view('products.show', ['product' => $product]);
+    }
+
+    public function showproduct($slug)
+    {
+        // ambil semua produk dari config
+        $products = config('products.items');
+
+        // cari produk berdasarkan slug
+        $product = collect($products)->firstWhere('slug', $slug);
+
+        if (!$product) {
+            abort(404, 'Produk tidak ditemukan');
+        }
+
+        // kirim ke view
+        return view('products.show', compact('product'));
+    }
+public function show($slug)
+{
+    dd('ROUTE KEPUKUL', $slug);
+    
+}
+
 }
