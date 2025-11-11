@@ -12,6 +12,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\BiteshipAreaController;
+use App\Http\Controllers\OrderController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Schema;
 
@@ -94,6 +95,8 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/shipping-rates', [CheckoutController::class, 'shippingRates'])->name('checkout.shipping-rates');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

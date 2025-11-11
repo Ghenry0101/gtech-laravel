@@ -18,7 +18,7 @@
             data-summary='@json($summary)'
             data-initial-shipping='@json($shippingOptions)'
             data-payment-methods='@json($paymentMethods)'
-            data-success-redirect="{{ route('dashboard') }}"
+            data-success-redirect="{{ route('orders.show', ['order' => '__ORDER_NUMBER__']) }}?from_checkout=1"
         >
             <div class="space-y-6">
                 <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">

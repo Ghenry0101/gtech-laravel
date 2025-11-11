@@ -22,7 +22,7 @@ if (root) {
         submit: root.dataset.submitEndpoint,
     };
 
-    const redirectUrl = root.dataset.successRedirect;
+    const successRedirectTemplate = root.dataset.successRedirect;
 
     const parseJsonAttr = (attribute) => {
         try {
@@ -188,9 +188,40 @@ if (root) {
         generalErrorBox.classList.remove('hidden');
     };
 
+    const buildSuccessRedirectUrl = (result) => {
+        if (!successRedirectTemplate) {
+            return null;
+        }
+
+        const orderNumber = result?.order_id || result?.orderId || null;
+
+        if (successRedirectTemplate.includes('__ORDER_NUMBER__')) {
+            if (!orderNumber) {
+                return successRedirectTemplate.replace('__ORDER_NUMBER__', '');
+            }
+
+            return successRedirectTemplate.replace('__ORDER_NUMBER__', orderNumber);
+        }
+
+        if (!orderNumber) {
+            return successRedirectTemplate;
+        }
+
+        try {
+            const url = new URL(successRedirectTemplate, window.location.origin);
+            url.searchParams.set('order', orderNumber);
+
+            return url.toString();
+        } catch (error) {
+            return successRedirectTemplate;
+        }
+    };
+
     const redirectAfterPayment = (result) => {
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
+        const successUrl = buildSuccessRedirectUrl(result);
+
+        if (successUrl) {
+            window.location.href = successUrl;
             return;
         }
 

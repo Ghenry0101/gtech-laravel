@@ -143,6 +143,9 @@
                         <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
                             {{ __('Keranjang') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                            {{ __('Pesanan') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
@@ -169,6 +172,9 @@
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('Profile') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('orders.index')">
+                                {{ __('Pesanan Saya') }}
                             </x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -207,6 +213,9 @@
                     <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
                         {{ __('Keranjang') }}
                     </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                        {{ __('Pesanan') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
@@ -222,6 +231,9 @@
                     <div class="space-y-1">
                         <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                             {{ __('Profile') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                            {{ __('Pesanan Saya') }}
                         </x-responsive-nav-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

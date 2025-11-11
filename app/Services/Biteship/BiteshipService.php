@@ -75,23 +75,52 @@ class BiteshipService
 
             $response = $client->post('/rates/couriers', array_filter($payload))->throw();
 
-            $data = $response->json('data', $response->json('pricing', []));
+            $body = $response->json();
+
+            $data = $body['data'] ?? $body['pricing'] ?? $body['couriers'] ?? $body['rates'] ?? [];
+            if (is_array($data) && ! empty($data) && isset($data['pricing']) && is_array($data['pricing'])) {
+                $data = $data['pricing'];
+            }
+
+            // Normalize to a list
+            if (! is_array($data)) {
+                $data = [];
+            }
 
             return collect($data)
                 ->map(function (array $rate): array {
                     $courier = $rate['courier'] ?? [];
-                    $duration = $rate['duration'] ?? [];
+                    $service = $rate['service'] ?? [];
+                    $duration = $rate['duration'] ?? null;
+
+                    $courierCode = $courier['code'] ?? ($rate['courier_code'] ?? null);
+                    $courierCompany = $courier['company'] ?? ($rate['courier_company'] ?? null);
+                    $serviceCode = $service['code']
+                        ?? ($rate['courier_service_code'] ?? ($rate['service_code'] ?? null));
+                    $serviceName = $service['name']
+                        ?? ($rate['courier_service_name'] ?? ($rate['service_name'] ?? null));
+                    $description = $courier['description'] ?? ($rate['courier_description'] ?? null);
+                    $price = (int) ($rate['price'] ?? ($rate['final_price'] ?? ($rate['total_price'] ?? 0)));
+
+                    // Fallbacks to avoid null labels in the UI
+                    if (! $courierCompany && $courierCode) {
+                        $courierCompany = strtoupper(str_replace(['_', '-'], ' ', $courierCode));
+                    }
+
+                    if (! $serviceName && $serviceCode) {
+                        $serviceName = strtoupper(str_replace(['_', '-'], ' ', $serviceCode));
+                    }
 
                     return [
-                        'courier_code' => $courier['code'] ?? null,
-                        'courier_company' => $courier['company'] ?? null,
-                        'courier_service_code' => $courier['service_code'] ?? null,
-                        'courier_service_name' => $courier['service_name'] ?? null,
-                        'courier_description' => $courier['description'] ?? null,
-                        'cost' => (int) ($rate['price'] ?? 0),
+                        'courier_code' => $courierCode,
+                        'courier_company' => $courierCompany,
+                        'courier_service_code' => $serviceCode,
+                        'courier_service_name' => $serviceName,
+                        'courier_description' => $description,
+                        'cost' => $price,
                         'estimation' => $this->formatDuration($duration),
-                        'duration_min' => $duration['min'] ?? null,
-                        'duration_max' => $duration['max'] ?? null,
+                        'duration_min' => is_array($duration) ? ($duration['min'] ?? null) : null,
+                        'duration_max' => is_array($duration) ? ($duration['max'] ?? null) : null,
                         'raw' => $rate,
                     ];
                 })
@@ -157,12 +186,55 @@ class BiteshipService
      * @throws RequestException
      */
     public function createShipment(array $payload): array
-    {
-        return $this->client()
-            ->post('/orders', $payload)
-            ->throw()
-            ->json();
+{
+    // PENTING: Biteship hanya menerima 'now' atau 'scheduled'
+    // Force fix jika ada value selain itu
+    if (!isset($payload['delivery_type']) || !in_array($payload['delivery_type'], ['now', 'scheduled'])) {
+        $payload['delivery_type'] = 'now';
     }
+
+    // Untuk 'scheduled', delivery_date dan delivery_time WAJIB
+    if ($payload['delivery_type'] === 'scheduled') {
+        if (!isset($payload['delivery_date'])) {
+            $payload['delivery_date'] = now()->addDay()->format('Y-m-d');
+        }
+        if (!isset($payload['delivery_time'])) {
+            $payload['delivery_time'] = '09:00';
+        }
+    } else {
+        // Untuk 'now', hapus delivery_date dan delivery_time
+        unset($payload['delivery_date'], $payload['delivery_time']);
+    }
+
+    // Hapus field yang tidak diperlukan oleh API Biteship
+    unset($payload['courier_code'], $payload['courier_service_code']);
+
+    // Log untuk debugging
+    Log::info('Biteship shipment payload', ['payload' => $payload]);
+
+    try {
+        $response = $this->client()
+            ->post('/orders', $payload)
+            ->throw();
+
+        $result = $response->json();
+        
+        Log::info('Biteship shipment success', [
+            'order_id' => $result['id'] ?? null,
+            'waybill_id' => $result['courier']['waybill_id'] ?? null,
+        ]);
+        
+        return $result;
+    } catch (RequestException $e) {
+        Log::error('Biteship shipment failed', [
+            'status' => $e->response?->status(),
+            'body' => $e->response?->body(),
+            'payload' => $payload,
+        ]);
+        
+        throw $e;
+    }
+}
 
     protected function client(): PendingRequest
     {
@@ -175,7 +247,7 @@ class BiteshipService
                 'verify' => $this->verifySsl,
             ])
             ->withHeaders([
-                'Authorization' => $this->apiKey,
+                'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ]);
@@ -313,9 +385,15 @@ class BiteshipService
         });
     }
 
-    protected function formatDuration(?array $duration): ?string
+    protected function formatDuration(array|string|null $duration): ?string
     {
-        if (! $duration) {
+        if (is_string($duration)) {
+            $duration = trim($duration);
+
+            return $duration !== '' ? $duration : null;
+        }
+
+        if (! is_array($duration) || empty($duration)) {
             return null;
         }
 
@@ -329,6 +407,10 @@ class BiteshipService
 
         if ($min) {
             return "{$min} {$unit}";
+        }
+
+        if ($max) {
+            return "{$max} {$unit}";
         }
 
         return null;
