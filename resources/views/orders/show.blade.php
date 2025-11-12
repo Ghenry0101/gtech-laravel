@@ -20,6 +20,15 @@
                 <span class="inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadgeClass }}">
                     {{ $statusLabel }}
                 </span>
+                @if ($order->order_status === 'shipped')
+                    <form method="POST" action="{{ route('orders.complete', $order) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-600">
+                            {{ __('Tandai Pesanan Selesai') }}
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('orders.index') }}" class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900">
                     {{ __('Kembali ke Riwayat') }}
                 </a>
@@ -33,6 +42,12 @@
                 <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 text-sm text-emerald-800">
                     <p class="font-semibold">{{ __('Terima kasih! Pesanan Anda berhasil dibuat.') }}</p>
                     <p class="mt-1">{{ __('Status pembayaran akan diperbarui otomatis begitu Midtrans mengkonfirmasi transaksi Anda.') }}</p>
+                </div>
+            @endif
+
+            @if (session('status_message'))
+                <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-800">
+                    {{ session('status_message') }}
                 </div>
             @endif
 
@@ -218,6 +233,83 @@
                             {{ __('Nomor pesanan: :number', ['number' => $order->order_number]) }}
                         </p>
                     </section>
+
+                    @if ($order->order_status === 'completed')
+                        <section id="order-review-section" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">{{ __('Bagikan Pengalaman Anda') }}</p>
+                                    <p class="text-xs text-slate-500">{{ __('Ulas setiap produk untuk membantu pelanggan lain.') }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-5 space-y-4">
+                                @foreach ($order->items as $item)
+                                    @php
+                                        $review = $item->review;
+                                        $activeOld = old('context_item');
+                                        $isCurrentForm = $activeOld && (int) $activeOld === $item->id;
+                                        $ratingValue = $isCurrentForm ? old('rating') : ($review->rating ?? null);
+                                        $titleValue = $isCurrentForm ? old('title') : ($review->title ?? '');
+                                        $commentValue = $isCurrentForm ? old('comment') : ($review->comment ?? '');
+                                    @endphp
+                                    <article class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <p class="text-sm font-semibold text-slate-900">{{ $item->product_name }}</p>
+                                                <p class="text-xs text-slate-500">{{ __('Jumlah: :qty', ['qty' => $item->quantity]) }}</p>
+                                            </div>
+                                            @if ($review)
+                                                <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600">
+                                                    {{ __('Sudah diulas') }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <form method="POST" action="{{ $review ? route('order-items.review.update', $item) : route('order-items.review.store', $item) }}" class="mt-4 space-y-3">
+                                            @csrf
+                                            @if ($review)
+                                                @method('PUT')
+                                            @endif
+                                            <input type="hidden" name="context_item" value="{{ $item->id }}">
+                                            <div class="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <label class="text-xs uppercase text-slate-400" for="rating-{{ $item->id }}">{{ __('Penilaian') }}</label>
+                                                    <select name="rating" id="rating-{{ $item->id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0">
+                                                        <option value="">{{ __('Pilih rating') }}</option>
+                                                        @for ($i = 5; $i >= 1; $i--)
+                                                            <option value="{{ $i }}" @selected((int) $ratingValue === $i)>{{ $i }} / 5</option>
+                                                        @endfor
+                                                    </select>
+                                                    @if ($errors->has('rating') && $isCurrentForm)
+                                                        <p class="mt-1 text-xs text-rose-500">{{ $errors->first('rating') }}</p>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs uppercase text-slate-400" for="title-{{ $item->id }}">{{ __('Judul (opsional)') }}</label>
+                                                    <input type="text" name="title" id="title-{{ $item->id }}" value="{{ $titleValue }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" placeholder="{{ __('Contoh: Pengiriman cepat') }}">
+                                                    @if ($errors->has('title') && $isCurrentForm)
+                                                        <p class="mt-1 text-xs text-rose-500">{{ $errors->first('title') }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="text-xs uppercase text-slate-400" for="comment-{{ $item->id }}">{{ __('Komentar') }}</label>
+                                                <textarea name="comment" id="comment-{{ $item->id }}" rows="3" class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" placeholder="{{ __('Tuliskan kesan Anda...') }}">{{ $commentValue }}</textarea>
+                                                @if ($errors->has('comment') && $isCurrentForm)
+                                                    <p class="mt-1 text-xs text-rose-500">{{ $errors->first('comment') }}</p>
+                                                @endif
+                                            </div>
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <p class="text-xs text-slate-500">{{ __('Ulasan dipublikasikan dengan nama akun Anda.') }}</p>
+                                                <button type="submit" class="inline-flex items-center justify-center rounded-full {{ $review ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600' }} px-4 py-2 text-xs font-semibold text-white">
+                                                    {{ $review ? __('Perbarui Ulasan') : __('Kirim Ulasan') }}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </article>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
 
                     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Butuh Bantuan?') }}</p>

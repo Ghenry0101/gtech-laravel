@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminBarangController;
+use App\Http\Controllers\Admin\AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\ProfileAddressController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Storefront\ProductController as StorefrontProductContro
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\BiteshipAreaController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemReviewController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Schema;
 
@@ -97,6 +99,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{order:order_number}/complete', [OrderController::class, 'complete'])->name('orders.complete');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -104,6 +107,9 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::post('/profile/addresses', [ProfileAddressController::class, 'store'])->name('profile.addresses.store');
     Route::put('/profile/addresses/{address}', [ProfileAddressController::class, 'update'])->name('profile.addresses.update');
     Route::delete('/profile/addresses/{address}', [ProfileAddressController::class, 'destroy'])->name('profile.addresses.destroy');
+
+    Route::post('/order-items/{orderItem}/review', [OrderItemReviewController::class, 'store'])->name('order-items.review.store');
+    Route::put('/order-items/{orderItem}/review', [OrderItemReviewController::class, 'update'])->name('order-items.review.update');
 });
 
 Route::get('/roles', [RoleController::class, 'index']);
@@ -121,6 +127,16 @@ Route::middleware(['auth', 'role:admin_barang'])
         Route::resource('barang/categories', AdminCategoryController::class)
             ->names('barang.categories')
             ->except(['show']);
+    });
+
+Route::middleware(['auth', 'role:admin_pengiriman'])
+    ->prefix('admin/pengiriman')
+    ->name('admin.shipping.')
+    ->group(function () {
+        Route::get('/', [AdminShippingController::class, 'index'])->name('dashboard');
+        Route::get('/orders/{order:order_number}', [AdminShippingController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order:order_number}/shipment', [AdminShippingController::class, 'updateShipment'])->name('orders.shipment.update');
+        Route::patch('/orders/{order:order_number}/status', [AdminShippingController::class, 'updateStatus'])->name('orders.status.update');
     });
 
 require __DIR__.'/auth.php';

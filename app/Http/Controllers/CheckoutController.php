@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Shipment;
 use App\Services\Biteship\BiteshipService;
 use App\Services\Midtrans\MidtransService;
+use App\Services\Shipping\ShipmentDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -283,7 +284,7 @@ class CheckoutController extends Controller
         });
 
         if ($this->shouldCreateShipmentFromNotification($payload)) {
-            $this->createShipmentOnBiteshipFromNotification($order);
+            ShipmentDispatcher::make()->dispatch($order);
         }
 
         return response()->json(['message' => 'Webhook processed.']);
@@ -383,100 +384,5 @@ class CheckoutController extends Controller
         }
 
         return $status === 'settlement';
-    }
-
-    protected function createShipmentOnBiteshipFromNotification(Order $order): void
-    {
-        $shipment = $order->shipment;
-        $address = $order->address;
-
-        if (! $shipment || $shipment->biteship_order_id || ! $address) {
-            return;
-        }
-
-        $biteship = BiteshipService::make();
-        $origin = config('biteship.origin', []);
-        $ratePayload = $shipment->rate_payload ?? [];
-        $courierType = data_get($ratePayload, 'courier.type')
-            ?? data_get($ratePayload, 'courier_type')
-            ?? data_get($ratePayload, 'type')
-            ?? data_get($ratePayload, 'service_type')
-            ?? 'regular';
-        $type = strtolower((string) $courierType);
-        $serviceCode = strtolower((string) $shipment->courier_service_code);
-        $onDemand = in_array($type, ['instant', 'same_day', 'sameday', 'on_demand', 'ondemand', 'bike', 'motorbike', 'car'], true)
-            || str_contains($serviceCode, 'instant')
-            || str_contains($serviceCode, 'sameday');
-        $courierCompany = data_get($ratePayload, 'courier.company')
-            ?? $shipment->courier_name;
-
-        $items = $order->items->map(function ($item) {
-            $weight = (int) ($item->product?->weight ?? 500);
-
-            return [
-                'name' => $item->product_name,
-                'value' => (int) round($item->price),
-                'quantity' => $item->quantity,
-                'weight' => $weight * $item->quantity,
-            ];
-        })->all();
-
-        $payload = [
-            'shipper_contact_name' => $origin['contact_name'],
-            'shipper_contact_phone' => $origin['contact_phone'],
-            'origin_contact_name' => $origin['contact_name'],
-            'origin_contact_phone' => $origin['contact_phone'],
-            'origin_address' => $origin['address'],
-            'origin_postal_code' => $origin['postal_code'],
-            'origin_area_id' => $origin['area_id'],
-            'destination_contact_name' => $address->recipient_name,
-            'destination_contact_phone' => $address->phone,
-            'destination_address' => $address->detail,
-            'destination_postal_code' => $address->postal_code,
-            'destination_area_id' => $address->biteship_area_id,
-            'courier_company' => $courierCompany,
-            'courier_type' => $courierType,
-            'items' => $items,
-            'order_note' => $order->notes,
-            'metadata' => [
-                'order_number' => $order->order_number,
-            ],
-        ];
-
-        $payload['distance'] = data_get($ratePayload, 'distance')
-            ?? data_get($ratePayload, 'summary.distance')
-            ?? null;
-
-        // Gunakan delivery_type dari data ongkir jika tersedia supaya konsisten dengan
-        // respons Biteship. Jika layanan on-demand tidak menyediakan nilai, fallback ke 'now'.
-        $deliveryType = data_get($ratePayload, 'delivery_type');
-
-        if (! $deliveryType && $onDemand) {
-            $deliveryType = 'now';
-        }
-
-        if ($deliveryType) {
-            $payload['delivery_type'] = strtolower((string) $deliveryType);
-        } else {
-            unset($payload['delivery_type']);
-        }
-
-
-        try {
-            $response = $biteship->createShipment($payload);
-
-            $shipment->forceFill([
-                'biteship_order_id' => $response['id'] ?? $response['order_id'] ?? $shipment->biteship_order_id,
-                'tracking_id' => $response['tracking_number'] ?? $response['tracking_id'] ?? $shipment->tracking_id,
-                'status' => $response['status'] ?? 'processing',
-                'rate_payload' => array_merge($shipment->rate_payload ?? [], ['order' => $response]),
-                'shipped_at' => $shipment->shipped_at ?? now(),
-            ])->save();
-        } catch (\Throwable $throwable) {
-            Log::error('Failed to push shipment to Biteship.', [
-                'order_id' => $order->id,
-                'message' => $throwable->getMessage(),
-            ]);
-        }
     }
 }

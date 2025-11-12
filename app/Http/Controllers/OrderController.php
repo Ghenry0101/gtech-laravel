@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -13,6 +15,7 @@ class OrderController extends Controller
         $orders = Order::query()
             ->with([
                 'items:id,order_id,product_name,quantity,price',
+                'items.review:id,order_item_id,rating,title,comment',
                 'shipment:id,order_id,courier_name,courier_service,status,tracking_id',
                 'payment:id,order_id,payment_status,payment_type,paid_at',
             ])
@@ -34,6 +37,7 @@ class OrderController extends Controller
 
         $order->loadMissing([
             'items.product',
+            'items.review',
             'shipment',
             'payment',
             'address',
@@ -48,6 +52,31 @@ class OrderController extends Controller
             'paymentMethods' => config('midtrans.payment_methods', []),
             'cameFromCheckout' => $request->boolean('from_checkout'),
         ]);
+    }
+
+    public function complete(Request $request, Order $order): RedirectResponse
+    {
+        $this->ensureOwnerAccess($request, $order);
+
+        abort_unless(in_array($order->order_status, ['processing', 'shipped'], true), 422, __('Pesanan belum dapat ditandai selesai.'));
+
+        DB::transaction(function () use ($order): void {
+            $order->forceFill([
+                'order_status' => 'completed',
+            ])->save();
+
+            if ($order->shipment) {
+                $order->shipment->forceFill([
+                    'status' => 'delivered',
+                    'shipped_at' => $order->shipment->shipped_at ?? now(),
+                    'delivered_at' => now(),
+                ])->save();
+            }
+        });
+
+        return back()
+            ->with('status', 'order-completed')
+            ->with('status_message', __('Terima kasih! Pesanan Anda kami tandai selesai. Silakan bagikan ulasan.'));
     }
 
     protected function ensureOwnerAccess(Request $request, Order $order): void
