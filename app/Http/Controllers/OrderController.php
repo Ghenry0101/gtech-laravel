@@ -37,7 +37,7 @@ class OrderController extends Controller
 
         $order->loadMissing([
             'items.product',
-            'items.review',
+            'items.review.images',
             'shipment',
             'payment',
             'address',

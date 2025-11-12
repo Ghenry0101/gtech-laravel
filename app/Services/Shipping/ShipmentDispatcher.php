@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Services\Biteship\BiteshipService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ShipmentDispatcher
 {
@@ -29,8 +30,18 @@ class ShipmentDispatcher
         $shipment = $order->shipment;
         $address = $order->address;
 
-        if (! $shipment || ! $address || $shipment->biteship_order_id) {
+        if (! $shipment || ! $address) {
             return false;
+        }
+
+        if ($shipment->biteship_order_id && $shipment->tracking_id) {
+            return true;
+        }
+
+        if ($shipment->biteship_order_id && ! $shipment->tracking_id) {
+            $this->assignFallbackTracking($order, 'missing_tracking_existing_biteship');
+
+            return true;
         }
 
         $origin = config('biteship.origin', []);
@@ -38,6 +49,7 @@ class ShipmentDispatcher
             Log::warning('Biteship origin configuration missing. Skip dispatch.', [
                 'order_id' => $order->id,
             ]);
+            $this->assignFallbackTracking($order, 'missing_origin');
 
             return false;
         }
@@ -91,13 +103,24 @@ class ShipmentDispatcher
         try {
             $response = $this->biteship->createShipment(array_filter($payload));
 
+            $trackingId = $response['tracking_number']
+                ?? $response['tracking_id']
+                ?? data_get($response, 'courier.waybill_id')
+                ?? data_get($response, 'courier.tracking_id')
+                ?? data_get($response, 'waybill_id')
+                ?? $shipment->tracking_id;
+
             $shipment->forceFill([
                 'biteship_order_id' => $response['id'] ?? $response['order_id'] ?? $shipment->biteship_order_id,
-                'tracking_id' => $response['tracking_number'] ?? $response['tracking_id'] ?? $shipment->tracking_id,
+                'tracking_id' => $trackingId,
                 'status' => $response['status'] ?? 'processing',
                 'rate_payload' => array_merge($shipment->rate_payload ?? [], ['order' => $response]),
                 'shipped_at' => $shipment->shipped_at ?? now(),
             ])->save();
+
+            if (! $shipment->tracking_id) {
+                $this->assignFallbackTracking($order, 'biteship_no_tracking');
+            }
 
             return true;
         } catch (\Throwable $throwable) {
@@ -105,6 +128,7 @@ class ShipmentDispatcher
                 'order_id' => $order->id,
                 'message' => $throwable->getMessage(),
             ]);
+            $this->assignFallbackTracking($order, 'biteship_failed');
 
             return false;
         }
@@ -144,5 +168,35 @@ class ShipmentDispatcher
         }
 
         return $deliveryType ? strtolower((string) $deliveryType) : null;
+    }
+
+    protected function assignFallbackTracking(Order $order, string $reason = 'fallback'): void
+    {
+        $shipment = $order->shipment;
+
+        if (! $shipment || $shipment->tracking_id) {
+            return;
+        }
+
+        $code = $this->generateFallbackTrackingCode($order);
+
+        $shipment->forceFill([
+            'tracking_id' => $code,
+            'status' => $shipment->status ?? 'processing',
+            'shipped_at' => $shipment->shipped_at ?? now(),
+        ])->save();
+
+        Log::info('Assign fallback tracking id', [
+            'order_id' => $order->id,
+            'tracking_id' => $code,
+            'reason' => $reason,
+        ]);
+    }
+
+    protected function generateFallbackTrackingCode(Order $order): string
+    {
+        $prefix = sprintf('GT-%s-', now()->format('ymd'));
+
+        return $prefix.Str::upper(Str::random(5)).sprintf('%04d', $order->id % 10000);
     }
 }

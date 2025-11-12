@@ -39,4 +39,9 @@ class Review extends Model
             'product_id'
         );
     }
+
+    public function images()
+    {
+        return $this->hasMany(ReviewImage::class);
+    }
 }

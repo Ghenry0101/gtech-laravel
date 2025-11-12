@@ -10,6 +10,7 @@
         ['label' => __('Berat'), 'value' => number_format($product->weight).' gr', 'helper' => __('dalam gram')],
         ['label' => __('Dimensi'), 'value' => $product->length.' x '.$product->width.' x '.$product->height.' cm', 'helper' => __('(P x L x T)')],
     ];
+    $ratingOptions = [5, 4, 3, 2, 1];
 @endphp
 
 <x-app-layout>
@@ -145,13 +146,35 @@
                     @endif
                 </div>
 
+                <div class="mt-4 flex flex-wrap gap-2">
+                    @php
+                        $allUrl = route('products.show', ['product' => $product->slug]);
+                        $isAllActive = $ratingFilter === null;
+                    @endphp
+                    <a href="{{ $allUrl }}" class="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold {{ $isAllActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                        {{ __('Semua Rating') }}
+                        <span class="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-[10px]">{{ $reviewStats['count'] }}</span>
+                    </a>
+                    @foreach ($ratingOptions as $option)
+                        @php
+                            $count = $ratingBuckets[$option] ?? 0;
+                            $url = route('products.show', ['product' => $product->slug, 'rating' => $option]);
+                            $active = $ratingFilter === $option;
+                        @endphp
+                        <a href="{{ $url }}" class="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold {{ $active ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            {{ $option }} ★
+                            <span class="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-[10px]">{{ $count }}</span>
+                        </a>
+                    @endforeach
+                </div>
+
                 <div class="mt-6 space-y-4">
                     @forelse ($reviews as $review)
                         @php
                             $customer = optional(optional($review->orderItem)->order)->user;
                             $customerName = $customer?->name ?? __('Pelanggan');
                         @endphp
-                        <article class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                        <article class="rounded-xl border border-slate-100 bg-slate-50 p-4" x-data="{ open: false, imageSrc: null }">
                             <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                 <p class="font-semibold text-slate-900">{{ $customerName }}</p>
                                 <p class="text-xs text-slate-500">{{ optional($review->reviewed_at ?? $review->created_at)->format('d M Y H:i') }}</p>
@@ -165,6 +188,24 @@
                                 <span class="ml-2 text-xs text-slate-500">{{ number_format($review->rating, 1) }}</span>
                             </div>
                             <p class="mt-3 text-sm text-slate-600">{{ $review->comment ?: __('Pengguna tidak memberikan komentar tambahan.') }}</p>
+                            @if ($review->images->isNotEmpty())
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach ($review->images as $image)
+                                        @php($imageUrl = asset('storage/'.$image->path))
+                                        <button type="button" class="block rounded-lg border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500" @click="open = true; imageSrc = '{{ $imageUrl }}'">
+                                            <img src="{{ $imageUrl }}" alt="{{ $image->original_name ?: $customerName }}" class="h-16 w-16 rounded-lg object-cover">
+                                        </button>
+                                    @endforeach
+                                </div>
+                                <div x-cloak x-show="open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4">
+                                    <div class="relative max-h-[90vh] max-w-3xl rounded-2xl bg-white p-4 shadow-2xl">
+                                        <button type="button" class="absolute -right-3 -top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-700 shadow focus:outline-none focus-visible:ring focus-visible:ring-slate-500/50" @click="open = false">
+                                            &times;
+                                        </button>
+                                        <img :src="imageSrc" alt="{{ __('Foto Ulasan') }}" class="max-h-[80vh] w-full rounded-xl object-contain">
+                                    </div>
+                                </div>
+                            @endif
                         </article>
                     @empty
                         <p class="text-sm text-slate-500">{{ __('Belum ada ulasan untuk produk ini.') }}</p>

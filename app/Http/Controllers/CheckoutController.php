@@ -179,6 +179,18 @@ class CheckoutController extends Controller
                     'quantity' => $cartItem->quantity,
                     'price' => $cartItem->price,
                 ]);
+
+                if ($cartItem->product) {
+                    $updatedRows = $cartItem->product
+                        ->newQuery()
+                        ->whereKey($cartItem->product->getKey())
+                        ->where('stock', '>=', $cartItem->quantity)
+                        ->decrement('stock', $cartItem->quantity);
+
+                    if (! $updatedRows) {
+                        throw new \RuntimeException(__('Stok :name tidak mencukupi.', ['name' => $cartItem->product->name]));
+                    }
+                }
             }
 
             $shipment = Shipment::create([
