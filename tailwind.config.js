@@ -10,9 +10,24 @@ export default {
     ],
 
     theme: {
+        borderColor: theme => ({
+            ...theme('colors'),
+            DEFAULT: '#EAEAEA',
+        }),
+        rounded: {
+            'none': '0',
+            'sm': '.125rem',
+            'md': '.375rem',
+            'lg': '.5rem',
+            'xl': '.75rem',
+            '2xl': '1rem',
+            '3xl': '1.5rem',
+            'full': '9999px',
+        },
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                // Use the Rubik Mono One Google Font everywhere font-sans is applied
+                sans: ['Poppins', ...defaultTheme.fontFamily.sans],
             },
         },
     },

@@ -1,25 +1,25 @@
 <x-app-layout>
 @php
     $categories = [
-        ['title' => 'PREBUILT PC', 'bg' => 'bayangan-pc.png'],
+        ['title' => 'ALL PRODUCT', 'bg' => 'PcG1.png'],
         ['title' => 'COMPONENTS', 'bg' => 'bayangan-4.png'],
-        ['title' => 'GAMING', 'bg' => 'bayangan-1.png'],
-        ['title' => 'OFFICE', 'bg' => 'bayangan-2.png'],
-        ['title' => 'SCHOOL', 'bg' => 'bayangan-3.png'],
+        ['title' => 'GAMING', 'bg' => 'PcBlack.png'],
+        ['title' => 'OFFICE', 'bg' => 'PcOffice.png'],
+        ['title' => 'SCHOOL', 'bg' => 'PcSchool.webp'],
     ];
 @endphp
 
-    <section class="font-aerospace space-y-10">
-        <section class="bg-white rounded-xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
+    <section class="font-aerospace space-y-10 p-6">
+        <section class="bg-white rounded-lg shadow-lg border p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
             <div class="space-y-4">
-                <h1 class="text-3xl md:text-4xl font-black tracking-wide">easy to use</h1>
+                <h1 class="text-3xl md:text-4xl tracking-wide font-extrabold">Easy To Use</h1>
                 <p class="text-sm text-gray-600 max-w-md">
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
                 </p>
-                <a href="#" class="inline-block px-5 py-2 rounded-md bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
+                <a href="#" class="inline-block px-5 py-2 rounded-sm bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
             </div>
-            <div class="w-full">
-                <img class="w-full rounded-lg" src="{{ asset('images/PC.png') }}" alt="PC preview">
+            <div class="w-[35vw]">
+                <img class="w-full rounded-md" src="{{ asset('images/Pcban.png') }}" alt="PC preview">
             </div>
         </section>
 
@@ -28,15 +28,17 @@
                 OUR CATEGORIES
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @foreach (array_slice($categories, 0, 2) as $cat)
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                @foreach (array_slice($categories, 0, 1) as $cat)
                     <a href="#"
-                       class="relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] bg-white">
-                        <img src="{{ asset('images/'.$cat['bg']) }}"
-                             alt="{{ $cat['title'] }}"
-                             class="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                        <div class="relative z-10 h-40 md:h-44 grid place-items-center px-6">
-                            <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
+                       class="relative overflow-hidden rounded-sm border shadow-lg bg-white flex">
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <img src="{{ asset('images/'.$cat['bg']) }}"
+                                 alt="{{ $cat['title'] }}"
+                                 class="w-40 object-cover object-center opacity-40" />
+                        </div>
+                        <div class="relative z-10 h-40 md:h-44 w-full px-6 flex items-center justify-center text-center">
+                            <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900">
                                 {{ $cat['title'] }}
                             </p>
                         </div>
@@ -47,12 +49,14 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 @foreach (array_slice($categories, 2) as $cat)
                     <a href="#"
-                       class="relative overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.15)] bg-white">
-                        <img src="{{ asset('images/'.$cat['bg']) }}"
-                             alt="{{ $cat['title'] }}"
-                             class="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                        <div class="relative z-10 h-36 md:h-40 grid place-items-center px-6">
-                            <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900 text-center">
+                       class="relative overflow-hidden rounded-sm border shadow-lg bg-white">
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <img src="{{ asset('images/'.$cat['bg']) }}"
+                                 alt="{{ $cat['title'] }}"
+                                 class="w-40 object-cover object-center opacity-40" />
+                        </div>
+                        <div class="relative z-10 h-36 md:h-40 w-full px-6 flex items-center justify-center text-center">
+                            <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900">
                                 {{ $cat['title'] }}
                             </p>
                         </div>

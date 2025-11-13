@@ -13,7 +13,7 @@
         </div>
     </x-slot>
 
-    <div class="py-10 space-y-8">
+    <div class="py-10 space-y-8 p-6">
         <section>
             <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 <div class="bg-white shadow-sm rounded-lg p-5 border border-gray-100">

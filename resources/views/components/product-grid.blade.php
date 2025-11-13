@@ -29,7 +29,7 @@
                 $detailUrl = $slug ? route('products.show', $slug) : '#';
             @endphp
 
-            <div class="rounded-2xl ring-1 ring-black/10 shadow-[0_6px_20px_-6px_rgba(0,0,0,.15)] bg-white overflow-hidden flex flex-col">
+            <div class="rounded-md border shadow-lg bg-white overflow-hidden flex flex-col">
                 <div class="relative h-48 bg-slate-100">
                     <img
                         src="{{ $imageUrl }}"
@@ -88,13 +88,13 @@
                         @endif
                     </div>
 
-                    <a
+
+                </div>                    <a
                         href="{{ $detailUrl }}"
-                        class="mt-auto inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
+                        class="mt-auto inline-flex w-full items-center justify-center rounded-sm bg-slate-900 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
                     >
                         {{ __('Lihat Produk') }}
                     </a>
-                </div>
             </div>
         @endforeach
     </div>
