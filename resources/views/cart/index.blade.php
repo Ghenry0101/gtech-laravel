@@ -30,7 +30,7 @@
 
                 <div class="min-w-0">
                   <div class="flex items-start justify-between gap-2">
-                    <h3 class="font-extrabold text-sm md:text-base truncate">
+                    <h3 class="font-medium text-sm md:text-base truncate">
                       {{ $item['title'] }}
                     </h3>
 
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="text-right">
-                  <p class="text-sm font-extrabold">
+                  <p class="text-sm font-medium">
                     <span class="line-total">$0.00</span>
                   </p>
                 </div>
@@ -80,11 +80,11 @@
       <div class="space-y-2 text-sm">
         <div class="flex justify-between">
           <span>Item dipilih</span>
-          <span id="selCount" class="font-extrabold">0</span>
+          <span id="selCount" class="font-medium">0</span>
         </div>
         <div class="flex justify-between">
           <span>Subtotal</span>
-          <span id="subtotal" class="font-extrabold">$0.00</span>
+          <span id="subtotal" class="font-medium">$0.00</span>
         </div>
         <div class="flex justify-between text-slate-500">
           <span>Estimasi ongkir</span>
@@ -93,7 +93,7 @@
         <hr class="my-2">
         <div class="flex justify-between text-lg">
           <span class="font-medium">Total</span>
-          <span id="grandTotal" class="font-extrabold">$0.00</span>
+          <span id="grandTotal" class="font-medium">$0.00</span>
         </div>
       </div>
 

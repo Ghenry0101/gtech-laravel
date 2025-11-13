@@ -46,12 +46,12 @@
         @endif
       </div>
 
-      <h1 class="mt-2 text-2xl md:text-3xl font-semibold tracking-wide">
+      <h1 class="mt-2 text-2xl md:text-3xl font-medium tracking-wide">
         {{ $product['nama_produk'] ?? 'Product Name' }}
       </h1>
 
       @if(!empty($product['harga_fmt']))
-        <p class="mt-2 text-xl font-semibold">{{ $product['harga_fmt'] }}</p>
+        <p class="mt-2 text-xl font-medium">{{ $product['harga_fmt'] }}</p>
       @endif
 
       <div class="mt-3 flex items-center gap-4 text-xs">
@@ -75,7 +75,7 @@
           <input type="number" name="qty" min="1" value="1"
                  class="w-20 h-10 rounded-lg border text-center">
           <button type="submit"
-                  class="flex-1 h-10 rounded-lg bg-slate-900 text-white font-semibold hover:opacity-90">
+                  class="flex-1 h-10 rounded-lg bg-slate-900 text-white font-medium hover:opacity-90">
             ADD TO CART
           </button>
         </div>
@@ -93,7 +93,6 @@
   <div class="mt-10">
     <div class="flex gap-4 text-sm">
       <button type="button" class="tab-btn px-3 py-2 rounded bg-slate-900 text-white" data-tab="desc">DESCRIPTION</button>
-      <button type="button" class="tab-btn px-3 py-2 rounded bg-slate-100" data-tab="spec">SPECIFICATION</button>
       <button type="button" class="tab-btn px-3 py-2 rounded bg-slate-100" data-tab="rev">REVIEW</button>
     </div>
 
@@ -102,21 +101,6 @@
         <p class="leading-relaxed text-slate-700">
           {!! nl2br(e($product['deskripsi'] ?? 'Tidak ada deskripsi untuk produk ini.')) !!}
         </p>
-      </div>
-
-      <div id="tab-spec" class="tab-pane hidden">
-        @if(!empty($product['spesifikasi']))
-          <div class="grid sm:grid-cols-2 gap-y-2 text-sm">
-            @foreach($product['spesifikasi'] as $k => $v)
-              <div class="flex justify-between border-b py-1">
-                <span class="text-slate-500">{{ $k }}</span>
-                <span class="font-medium">{{ $v }}</span>
-              </div>
-            @endforeach
-          </div>
-        @else
-          <p class="text-slate-500 text-sm">Belum ada spesifikasi.</p>
-        @endif
       </div>
 
       <div id="tab-rev" class="tab-pane hidden">
@@ -144,7 +128,6 @@
     const btns = document.querySelectorAll('.tab-btn');
     const panes = {
       desc: document.getElementById('tab-desc'),
-      spec: document.getElementById('tab-spec'),
       rev:  document.getElementById('tab-rev'),
     };
     btns.forEach(b=>{

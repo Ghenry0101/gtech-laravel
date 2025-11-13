@@ -25,6 +25,19 @@ Route::get('/search', function (Request $request) {
     return view('search', ['q' => $q]);
 })->name('search');
 
+Route::view('/login', 'auth.login')->name('login');
+
+Route::post('/login', function (Request $request) {
+    $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required', 'min:6'],
+    ]);
+
+    return back()
+        ->withInput($request->only('email', 'remember'))
+        ->with('status', 'Fitur login sedang dipersiapkan.');
+})->name('login.attempt');
+
 Route::get('/products/{category?}', [ProductController::class, 'index'])
     ->where('category', '^[a-z0-9-]+$')
     ->name('products.index');
