@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -55,53 +55,56 @@ class ProductController extends Controller
             'active'     => $active,
         ]);
     }
-    //  public function show(string $slug)
-    // {
-    //     $p = config("products.$slug.items");
-    //     abort_if(!$p, 404);
-
-    //     // siapkan nilai turunan agar Blade rapi
-    //     $p['harga_fmt'] = '$' . number_format((float)($p['harga'] ?? 0), 2);
-    //     $p['status_label'] = ($p['status'] ?? '') === 'available' ? 'AVAILABLE' : 'UNAVAILABLE';
-    //     $p['image_full'] = asset($p['gambar_produk'] ?? 'images/PC.png');
-    //     $p['gallery_full'] = array_map(fn($g) => asset($g), $p['gallery'] ?? []);
-
-    //     return view('products.show', [
-    //         'p'    => $p,
-    //         'slug' => $slug,
-    //         'reviews' => config("products.$slug.ulasan", []),
-    //     ]);
-    // }
 
     public function showBySlug(string $slug)
     {
-        $product = collect(config('products.items', []))
-            ->first(fn($p) => ($p['slug'] ?? Str::slug($p['nama_produk'])) === $slug);
+        return $this->renderDetail($slug);
+    }
+
+    public function show(string $slug)
+    {
+        return $this->renderDetail($slug);
+    }
+
+    protected function renderDetail(string $slug)
+    {
+        $product = $this->resolveProduct($slug);
+
+        return view('products.show', [
+            'product' => $product,
+        ]);
+    }
+
+    protected function resolveProduct(string $slug): array
+    {
+        $catalog = config('products.items', []);
+        $target  = Str::lower($slug);
+
+        $product = collect($catalog)->first(function ($item) use ($target) {
+            $candidate = $item['slug'] ?? Str::slug($item['nama_produk'] ?? '');
+            return Str::lower($candidate) === $target;
+        });
 
         abort_if(!$product, 404);
 
-        return view('products.show', ['product' => $product]);
+        return $this->decorateProduct($product);
     }
 
-    public function showproduct($slug)
+    protected function decorateProduct(array $product): array
     {
-        // ambil semua produk dari config
-        $products = config('products.items');
+        $imagePath = $product['gambar_produk'] ?? 'images/PC.png';
+        $gallery   = collect($product['gallery'] ?? [])
+            ->filter()
+            ->map(fn ($path) => asset($path))
+            ->values()
+            ->all();
 
-        // cari produk berdasarkan slug
-        $product = collect($products)->firstWhere('slug', $slug);
+        $product['kategori_label'] = strtoupper($product['kategori'] ?? 'OTHERS');
+        $product['harga_fmt']      = '$' . number_format((float)($product['harga'] ?? 0), 2);
+        $product['status_label']   = ($product['status'] ?? '') === 'available' ? 'AVAILABLE' : 'UNAVAILABLE';
+        $product['image_full']     = asset($imagePath);
+        $product['gallery_full']   = $gallery;
 
-        if (!$product) {
-            abort(404, 'Produk tidak ditemukan');
-        }
-
-        // kirim ke view
-        return view('products.show', compact('product'));
+        return $product;
     }
-public function show($slug)
-{
-    dd('ROUTE KEPUKUL', $slug);
-    
-}
-
 }
