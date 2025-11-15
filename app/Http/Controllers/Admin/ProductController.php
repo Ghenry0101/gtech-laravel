@@ -31,7 +31,7 @@ class ProductController extends Controller
             ->orderByDesc('created_at')
             ->paginate(12)
             ->withQueryString();
-
+        dd($products);
         return view('admin.barang.products.index', compact('products', 'search'));
     }
 

@@ -50,6 +50,7 @@ $homePage = function () {
         }
 
         return [
+            'id' => $product->id,
             'title' => $product->name,
             'slug' => $product->slug,
             'status' => $product->stock > 0 ? 'available' : 'unavailable',
@@ -74,6 +75,7 @@ $homePage = function () {
     ]);
 };
 
+Route::get('/search', 'SearchController@search')->name('search');
 Route::get('/', $homePage);
 Route::get('/home', $homePage)->name('home');
 
@@ -142,3 +144,4 @@ Route::middleware(['auth', 'role:admin_pengiriman'])
 require __DIR__.'/auth.php';
 
 Route::post('/midtrans/webhook', MidtransWebhookController::class)->name('midtrans.webhook');
+Route::get('')

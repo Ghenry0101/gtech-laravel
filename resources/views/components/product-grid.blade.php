@@ -8,6 +8,7 @@
     <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @foreach ($items as $p)
             @php
+                $id = \Illuminate\Support\Arr::get($p, 'id');
                 $title = \Illuminate\Support\Arr::get($p, 'title', '-');
                 $status = strtolower(\Illuminate\Support\Arr::get($p, 'status', 'available'));
                 $stock = \Illuminate\Support\Arr::get($p, 'stock', 0);
@@ -42,7 +43,7 @@
                         </span>
                     @endif
                 </div>
-
+            <a href="{{ $detailUrl }}">
                 <div class="p-4 flex-1 flex flex-col gap-3">
                     <div>
                         <h4 class="font-extrabold text-slate-900 line-clamp-2">{{ $title }}</h4>
@@ -89,13 +90,21 @@
                     </div>
 
 
-                </div>                    <a
-                        href="{{ $detailUrl }}"
-                        class="mt-auto inline-flex w-full items-center justify-center rounded-sm bg-slate-900 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
-                    >
-                        {{ __('Lihat Produk') }}
-                    </a>
+                </div>
+            </a>
+            <form method="POST" action="{{ route('cart.store') }}">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $id }}">
+
+                <button
+                    type="submit"
+                    class="mt-auto inline-flex w-full items-center justify-center rounded-sm bg-slate-900 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
+                >
+                    {{ __('Tambah Cart') }}
+                </button>
+            </form>
             </div>
+
         @endforeach
     </div>
 @endif

@@ -64,9 +64,10 @@ class CartController extends Controller
         $cartEntry->quantity = $cartEntry->exists ? $cartEntry->quantity + $quantity : $quantity;
         $cartEntry->save();
 
-        $redirectRoute = $validated['action'] === 'buy' ? 'cart.index' : 'cart.index';
+        $action = $validated['action'] ?? 'add';
+        $redirectRoute = $action === 'buy' ? 'cart.index' : 'cart.index';
 
-        $message = $validated['action'] === 'buy'
+        $message = $action === 'buy'
             ? __('Produk siap dibeli. Silakan cek keranjang Anda.')
             : __('Produk ditambahkan ke keranjang.');
 

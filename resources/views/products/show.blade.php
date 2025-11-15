@@ -25,9 +25,9 @@
 
     <div class="py-10">
         <div class="mx-auto max-w-6xl space-y-10 sm:px-6 lg:px-8">
-            <div class="grid gap-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-3">
+            <div class="grid gap-8 rounded-md border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-3">
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <div class="overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                         <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
                     </div>
 
@@ -38,7 +38,7 @@
                         </div>
                         <div class="grid gap-4 sm:grid-cols-3">
                             @foreach ($specs as $spec)
-                                <div class="rounded-xl border border-slate-200 p-4">
+                                <div class="rounded-md border border-slate-200 p-4">
                                     <p class="text-xs uppercase text-slate-400">{{ $spec['label'] }}</p>
                                     <p class="text-lg font-semibold text-slate-900">{{ $spec['value'] }}</p>
                                     <p class="text-xs text-slate-400">{{ $spec['helper'] }}</p>
@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="space-y-6">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-900/95 p-6 text-white shadow-md">
+                    <div class="rounded-md border border-slate-200 bg-slate-900/95 p-6 text-white shadow-md">
                         <p class="text-xs uppercase tracking-wide text-slate-300">{{ __('Harga Promo') }}</p>
                         <p class="mt-2 text-4xl font-bold">
                             Rp {{ number_format($product->effective_price, 0, ',', '.') }}
@@ -84,7 +84,7 @@
                                             id="quantity"
                                             name="quantity"
                                             value="1"
-                                            class="w-24 rounded-lg border-slate-300 text-center text-sm text-slate-900"
+                                            class="w-24 rounded-sm border-slate-300 text-center text-sm text-slate-900"
                                         >
                                         <span class="text-xs text-slate-200">{{ __('Tersisa :stock', ['stock' => number_format($product->stock)]) }}</span>
                                     </div>
@@ -94,7 +94,7 @@
                                         type="submit"
                                         name="action"
                                         value="buy"
-                                        class="inline-flex w-full items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-100"
+                                        class="inline-flex w-full items-center justify-center rounded-sm bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-100"
                                     >
                                         {{ __('Beli Sekarang') }}
                                     </button>
@@ -102,20 +102,20 @@
                                         type="submit"
                                         name="action"
                                         value="add"
-                                        class="inline-flex w-full items-center justify-center rounded-lg border border-white/40 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                                        class="inline-flex w-full items-center justify-center rounded-sm border border-white/40 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
                                     >
                                         {{ __('Tambah ke Keranjang') }}
                                     </button>
                                 </div>
                             </form>
                         @else
-                            <div class="mt-6 rounded-lg border border-white/30 bg-white/10 p-4 text-sm">
+                            <div class="mt-6 rounded-md border border-white/30 bg-white/10 p-4 text-sm">
                                 {{ __('Silakan masuk untuk membeli atau menambahkan produk ke keranjang.') }}
                             </div>
                         @endauth
                     </div>
 
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+                    <div class="rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Informasi Diskon') }}</p>
                         <p class="mt-1">
                             {{ __('Mulai: :start', ['start' => $discountStart]) }}<br>
@@ -131,7 +131,7 @@
                 </div>
             </div>
 
-            <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h3 class="text-lg font-semibold text-slate-900">{{ __('Ulasan Pelanggan') }}</h3>
@@ -151,7 +151,7 @@
                             $customer = optional(optional($review->orderItem)->order)->user;
                             $customerName = $customer?->name ?? __('Pelanggan');
                         @endphp
-                        <article class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                        <article class="rounded-md border border-slate-100 bg-slate-50 p-4">
                             <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                 <p class="font-semibold text-slate-900">{{ $customerName }}</p>
                                 <p class="text-xs text-slate-500">{{ optional($review->reviewed_at ?? $review->created_at)->format('d M Y H:i') }}</p>
