@@ -11,16 +11,22 @@ use App\Http\Controllers\ProfileAddressController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\BiteshipAreaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemReviewController;
 use App\Models\Product;
+use App\Support\CategoryMenu;
+use App\ViewModels\ProductCardViewModel;
 use Illuminate\Support\Facades\Schema;
 
 $homePage = function () {
+    $categories = CategoryMenu::active();
+
     if (! Schema::hasTable('products')) {
         return view('home', [
+            'categories' => $categories,
             'popular' => [],
             'latest' => [],
         ]);
@@ -39,48 +45,21 @@ $homePage = function () {
         ->take(8)
         ->get();
 
-    $transformProduct = static function (Product $product): array {
-        $imagePath = $product->product_image ? 'storage/'.$product->product_image : 'images/PC.png';
-        $hasDiscount = $product->hasDiscountConfigured();
-        $isDiscountActive = $product->hasDiscountActive();
-        $plannedPrice = $product->discount_price;
-
-        if ($plannedPrice === null && $product->discount_percent !== null) {
-            $plannedPrice = round($product->price - ($product->price * $product->discount_percent / 100), 2);
-        }
-
-        return [
-            'id' => $product->id,
-            'title' => $product->name,
-            'slug' => $product->slug,
-            'status' => $product->stock > 0 ? 'available' : 'unavailable',
-            'price' => $isDiscountActive && $plannedPrice !== null
-                ? (float) $product->effective_price
-                : (float) ($plannedPrice !== null ? $plannedPrice : $product->price),
-            'original_price' => (float) $product->price,
-            'planned_price' => $plannedPrice,
-            'has_discount' => $hasDiscount,
-            'is_discount_active' => $isDiscountActive,
-            'discount_percent' => $product->discount_percent,
-            'discount_start' => optional($product->discount_start)?->format('d M Y H:i'),
-            'discount_end' => optional($product->discount_end)?->format('d M Y H:i'),
-            'image_path' => $imagePath,
-            'stock' => $product->stock,
-        ];
-    };
-
     return view('home', [
-        'popular' => $popularProducts->map($transformProduct)->all(),
-        'latest' => $latestProducts->map($transformProduct)->all(),
+        'categories' => $categories,
+        'popular' => ProductCardViewModel::collection($popularProducts),
+        'latest' => ProductCardViewModel::collection($latestProducts),
     ]);
 };
 
-Route::get('/search', 'SearchController@search')->name('search');
+Route::get('/search', [SearchController::class, 'search'])->name('search');
 Route::get('/', $homePage);
 Route::get('/home', $homePage)->name('home');
 
 Route::get('/products/{product:slug}', [StorefrontProductController::class, 'show'])
     ->name('products.show');
+Route::get('/produks/{category:slug?}', [StorefrontProductController::class, 'index'])
+    ->name('products.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -144,4 +123,3 @@ Route::middleware(['auth', 'role:admin_pengiriman'])
 require __DIR__.'/auth.php';
 
 Route::post('/midtrans/webhook', MidtransWebhookController::class)->name('midtrans.webhook');
-Route::get('')

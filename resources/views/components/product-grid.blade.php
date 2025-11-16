@@ -5,7 +5,7 @@
 @if ($items->isEmpty())
     <div class="text-center text-sm text-gray-400 mt-4">Belum ada produk.</div>
 @else
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl">
         @foreach ($items as $p)
             @php
                 $id = \Illuminate\Support\Arr::get($p, 'id');
@@ -30,7 +30,7 @@
                 $detailUrl = $slug ? route('products.show', $slug) : '#';
             @endphp
 
-            <div class="rounded-md border shadow-lg bg-white overflow-hidden flex flex-col">
+            <div class="rounded-md border shadow-lg bg-white overflow-hidden flex flex-col h-full">
                 <div class="relative h-48 bg-slate-100">
                     <img
                         src="{{ $imageUrl }}"
@@ -43,66 +43,68 @@
                         </span>
                     @endif
                 </div>
-            <a href="{{ $detailUrl }}">
-                <div class="p-4 flex-1 flex flex-col gap-3">
-                    <div>
-                        <h4 class="font-extrabold text-slate-900 line-clamp-2">{{ $title }}</h4>
-                        <p class="mt-1 text-xs font-bold {{ $status === 'available' ? 'text-green-600' : 'text-red-600' }}">
-                            {{ $status === 'available' ? __('Tersedia') : __('Stok kosong') }}
-                            @if ($status === 'available')
-                                <span class="text-[11px] text-gray-400 font-normal">({{ __('Stok: :stock', ['stock' => number_format($stock)]) }})</span>
-                            @endif
-                        </p>
-                    </div>
-
-                    <div>
-                        <p class="text-lg font-black text-slate-900">
-                            Rp {{ number_format($primaryPrice, 0, ',', '.') }}
-                            @if ($hasDiscount)
-                                <span class="ml-2 text-[11px] font-semibold {{ $isDiscountActive ? 'text-emerald-600' : 'text-amber-600' }}">
-                                    {{ $isDiscountActive ? __('Promo aktif') : __('Promo segera') }}
-                                </span>
-                            @endif
-                        </p>
-                        @if ($slashPrice && $slashPrice > $primaryPrice)
-                            <p class="text-xs text-slate-400 line-through">
-                                Rp {{ number_format($slashPrice, 0, ',', '.') }}
-                            </p>
-                        @endif
-                        @if ($hasDiscount)
-                            <div class="space-y-1 text-[11px]">
-                                <p class="text-[11px] font-semibold text-emerald-600">
-                                    {{ __('Diskon :percent%', ['percent' => number_format($discountPercent ?? (($originalPrice ?: $price) && $plannedPrice ? (($originalPrice ?: $price) - $plannedPrice) / max($originalPrice ?: $price, 1) * 100 : 0), 2)]) }}
-                                </p>
-                                @if (! $isDiscountActive && $plannedPrice)
-                                    <p class="text-emerald-700">
-                                        {{ __('Harga promo: Rp :price', ['price' => number_format($plannedPrice, 0, ',', '.')]) }}
-                                    </p>
-                                @endif
-                                <p class="text-[11px] text-slate-400">
-                                    {{ __('Periode: :start - :end', [
-                                        'start' => $discountStart ?? __('sekarang'),
-                                        'end' => $discountEnd ?? __('tanpa batas')
-                                    ]) }}
+                <div class="flex flex-1 flex-col">
+                    <a href="{{ $detailUrl }}" class="flex-1">
+                        <div class="p-4 flex h-full flex-col gap-3">
+                            <div>
+                                <h4 class="font-extrabold text-slate-900 line-clamp-2">{{ $title }}</h4>
+                                <p class="mt-1 text-xs font-bold {{ $status === 'available' ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $status === 'available' ? __('Tersedia') : __('Stok kosong') }}
+                                    @if ($status === 'available')
+                                        <span class="text-[11px] text-gray-400 font-normal">({{ __('Stok: :stock', ['stock' => number_format($stock)]) }})</span>
+                                    @endif
                                 </p>
                             </div>
-                        @endif
-                    </div>
 
+                            <div>
+                                <p class="text-lg font-black text-slate-900">
+                                    Rp {{ number_format($primaryPrice, 0, ',', '.') }}
+                                    @if ($hasDiscount)
+                                        <span class="ml-2 text-[11px] font-semibold {{ $isDiscountActive ? 'text-emerald-600' : 'text-amber-600' }}">
+                                            {{ $isDiscountActive ? __('Promo aktif') : __('Promo segera') }}
+                                        </span>
+                                    @endif
+                                </p>
+                                @if ($slashPrice && $slashPrice > $primaryPrice)
+                                    <p class="text-xs text-slate-400 line-through">
+                                        Rp {{ number_format($slashPrice, 0, ',', '.') }}
+                                    </p>
+                                @endif
+                                @if ($hasDiscount)
+                                    <div class="space-y-1 text-[11px]">
+                                        <p class="text-[11px] font-semibold text-emerald-600">
+                                            {{ __('Diskon :percent%', ['percent' => number_format($discountPercent ?? (($originalPrice ?: $price) && $plannedPrice ? (($originalPrice ?: $price) - $plannedPrice) / max($originalPrice ?: $price, 1) * 100 : 0), 2)]) }}
+                                        </p>
+                                        @if (! $isDiscountActive && $plannedPrice)
+                                            <p class="text-emerald-700">
+                                                {{ __('Harga promo: Rp :price', ['price' => number_format($plannedPrice, 0, ',', '.')]) }}
+                                            </p>
+                                        @endif
+                                        <p class="text-[11px] text-slate-400">
+                                            {{ __('Periode: :start - :end', [
+                                                'start' => $discountStart ?? __('sekarang'),
+                                                'end' => $discountEnd ?? __('tanpa batas')
+                                            ]) }}
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </a>
 
+                    <form method="POST" action="{{ route('cart.store') }}" class="mt-auto">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $id }}">
+
+                        <button
+                            type="submit"
+                            class="inline-flex w-full items-center justify-center rounded-none bg-slate-900 px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
+                        >
+                            {{ __('Tambah Cart') }}
+                        </button>
+                    </form>
                 </div>
-            </a>
-            <form method="POST" action="{{ route('cart.store') }}">
-                @csrf
-                <input type="hidden" name="product_id" value="{{ $id }}">
 
-                <button
-                    type="submit"
-                    class="mt-auto inline-flex w-full items-center justify-center rounded-sm bg-slate-900 px-4 py-2 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-slate-800 {{ $slug ? '' : 'opacity-50 pointer-events-none' }}"
-                >
-                    {{ __('Tambah Cart') }}
-                </button>
-            </form>
             </div>
 
         @endforeach

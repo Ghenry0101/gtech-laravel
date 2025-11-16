@@ -20,7 +20,7 @@
                 </a>
             <div class="hidden sm:flex flex-1">
                 <form action="{{ route('search') }}" method="GET" class="relative w-full">
-                    <input type="text" name="query"
+                    <input type="text" name="query" value="{{ request('query', '') }}" aria-label="{{ __('Cari produk') }}"
                         class="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="{{ __('Cari') }}" />
 
@@ -144,4 +144,3 @@
         </div>
     </nav>
 @endif
-

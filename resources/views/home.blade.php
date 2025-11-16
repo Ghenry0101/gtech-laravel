@@ -1,12 +1,56 @@
 <x-app-layout>
 @php
-    $categories = [
-        ['title' => 'ALL PRODUCT', 'bg' => 'PcG1.png'],
-        ['title' => 'COMPONENTS', 'bg' => 'bayangan-4.png'],
-        ['title' => 'GAMING', 'bg' => 'PcBlack.png'],
-        ['title' => 'OFFICE', 'bg' => 'PcOffice.png'],
-        ['title' => 'SCHOOL', 'bg' => 'PcSchool.webp'],
-    ];
+    $categoryMap = collect($categories ?? [])->filter(fn ($cat) => !empty($cat['slug']))->keyBy('slug');
+    $slotDefinitions = collect([
+        [
+            'label' => __('All Products'),
+            'slugs' => [null],
+            'background' => config('storefront.category_backgrounds.default', 'images/PcBan.png'),
+        ],
+        [
+            'label' => __('Gaming'),
+            'slugs' => ['gaming', 'pc-gaming'],
+            'background' => config('storefront.category_backgrounds.gaming', 'images/PcBlack.png'),
+        ],
+        [
+            'label' => __('Office'),
+            'slugs' => ['office', 'pc-office'],
+            'background' => config('storefront.category_backgrounds.office', 'images/PcOffice.png'),
+        ],
+        [
+            'label' => __('School'),
+            'slugs' => ['school', 'pc-school'],
+            'background' => config('storefront.category_backgrounds.school', 'images/PcSchool.webp'),
+        ],
+    ]);
+
+    $slots = $slotDefinitions->map(function ($slot) use ($categoryMap) {
+        $resolvedSlug = null;
+        $slugData = null;
+
+        foreach ($slot['slugs'] as $slugOption) {
+            if ($slugOption === null) {
+                $resolvedSlug = null;
+                break;
+            }
+
+            if ($categoryMap->has($slugOption)) {
+                $resolvedSlug = $slugOption;
+                $slugData = $categoryMap->get($slugOption);
+                break;
+            }
+        }
+
+        return [
+            'label' => $slot['label'],
+            'slug' => $resolvedSlug,
+            'background' => $slugData['background'] ?? $slot['background'],
+            'available' => $resolvedSlug === null ? true : ($slugData !== null),
+        ];
+    })->values();
+
+    $heroCategory = $slots->first();
+    $gridCategories = $slots->slice(1);
 @endphp
 
     <section class="font-aerospace space-y-10 p-6">
@@ -16,7 +60,7 @@
                 <p class="text-sm text-gray-600 max-w-md">
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
                 </p>
-                <a href="#" class="inline-block px-5 py-2 rounded-sm bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
+                <a href="{{ route('products.index') }}" class="inline-block px-5 py-2 rounded-sm bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
             </div>
             <div class="w-[35vw]">
                 <img class="w-full rounded-md" src="{{ asset('images/Pcban.png') }}" alt="PC preview">
@@ -28,39 +72,52 @@
                 OUR CATEGORIES
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                @foreach (array_slice($categories, 0, 1) as $cat)
-                    <a href="#"
+            <div class="grid grid-cols-1 gap-4">
+                @if ($heroCategory)
+                    <a href="{{ route('products.index') }}"
                        class="relative overflow-hidden rounded-sm border shadow-lg bg-white flex">
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <img src="{{ asset('images/'.$cat['bg']) }}"
-                                 alt="{{ $cat['title'] }}"
+                            <img src="{{ asset($heroCategory['background']) }}"
+                                 alt="{{ $heroCategory['label'] }}"
                                  class="w-40 object-cover object-center opacity-40" />
                         </div>
                         <div class="relative z-10 h-40 md:h-44 w-full px-6 flex items-center justify-center text-center">
                             <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900">
-                                {{ $cat['title'] }}
+                                {{ strtoupper($heroCategory['label']) }}
                             </p>
                         </div>
                     </a>
-                @endforeach
+                @else
+                    <div class="relative overflow-hidden rounded-sm border shadow-lg bg-white flex items-center justify-center h-40 md:h-44">
+                        <p class="text-sm font-semibold text-gray-500">Tidak ada produk.</p>
+                    </div>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                @foreach (array_slice($categories, 2) as $cat)
-                    <a href="#"
-                       class="relative overflow-hidden rounded-sm border shadow-lg bg-white">
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <img src="{{ asset('images/'.$cat['bg']) }}"
-                                 alt="{{ $cat['title'] }}"
-                                 class="w-40 object-cover object-center opacity-40" />
-                        </div>
-                        <div class="relative z-10 h-36 md:h-40 w-full px-6 flex items-center justify-center text-center">
-                            <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900">
-                                {{ $cat['title'] }}
+                @foreach ($gridCategories as $cat)
+                    @if ($cat['available'])
+                        <a href="{{ route('products.index', $cat['slug']) }}"
+                           class="relative overflow-hidden rounded-sm border shadow-lg bg-white">
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <img src="{{ asset($cat['background']) }}"
+                                     alt="{{ $cat['label'] }}"
+                                     class="w-40 object-cover object-center opacity-40" />
+                            </div>
+                            <div class="relative z-10 h-36 md:h-40 w-full px-6 flex items-center justify-center text-center">
+                                <p class="text-3xl md:text-4xl font-black tracking-wide text-slate-900">
+                                    {{ strtoupper($cat['label']) }}
+                                </p>
+                            </div>
+                        </a>
+                    @else
+                        <div class="relative overflow-hidden rounded-sm border shadow-lg bg-white flex flex-col items-center justify-center h-36 md:h-40 gap-1">
+                            <p class="text-xl font-black tracking-wide text-slate-400">
+                                {{ strtoupper($cat['label']) }}
                             </p>
+                            <p class="text-sm font-semibold text-slate-500">Tidak ada produk.</p>
                         </div>
-                    </a>
+                    @endif
                 @endforeach
             </div>
         </section>
