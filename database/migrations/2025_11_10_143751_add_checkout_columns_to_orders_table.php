@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -13,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('order_number', 40)->nullable()->after('address_id');
+            $table->string('order_number', 40)->nullable()->after('full_address');
             $table->string('payment_method')->nullable()->after('order_status');
             $table->timestamp('paid_at')->nullable()->after('payment_method');
         });
@@ -26,7 +27,7 @@ return new class extends Migration
                     DB::table('orders')
                         ->where('id', $order->id)
                         ->update([
-                            'order_number' => sprintf('GTECH-%08d', $order->id),
+                            'order_number' => sprintf('GTECH-%s', Str::upper(Str::ulid())),
                         ]);
                 }
             });

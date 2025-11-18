@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateCategoryRequest extends FormRequest
+class UpdateBrandRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,18 +17,14 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $category = $this->route('category');
-        $categoryId = $category instanceof \App\Models\Category ? $category->getKey() : $category;
-
         return [
             'name' => [
                 'required',
                 'string',
                 'max:150',
-                Rule::unique('categories', 'name')->ignore($categoryId),
+                Rule::unique('brands', 'name')->ignore(optional($this->route('brand'))->getKey(), 'id'),
             ],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'boolean'],
+            'logo' => ['nullable', 'image', 'max:2048'],
         ];
     }
 }

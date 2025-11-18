@@ -16,7 +16,7 @@ class OrderController extends Controller
             ->with([
                 'items:id,order_id,product_name,quantity,price',
                 'items.review:id,order_item_id,rating,title,comment',
-                'shipment:id,order_id,courier_name,courier_service,status,tracking_id',
+                'shipment:id,order_id,courier_name,courier_service,status,tracking_id,waybill_id',
                 'payment:id,order_id,payment_status,payment_type,paid_at',
             ])
             ->where('user_id', $request->user()->id)
@@ -40,7 +40,6 @@ class OrderController extends Controller
             'items.review.images',
             'shipment',
             'payment',
-            'address',
         ]);
 
         $statusMeta = $this->statusMeta();

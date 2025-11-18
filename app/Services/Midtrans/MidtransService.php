@@ -52,20 +52,36 @@ class MidtransService
         array $customerDetails,
         string $paymentMethodKey,
     ): array {
-        $enabledPayments = $this->paymentMethods[$paymentMethodKey]['enabled_payments'] ?? [];
+        $paymentMethod = $this->paymentMethods[$paymentMethodKey] ?? null;
+
+        if (! $paymentMethod) {
+            throw new \InvalidArgumentException("Midtrans payment method [{$paymentMethodKey}] is not configured.");
+        }
+
+        $enabledPayments = $this->resolveEnabledPayments($paymentMethodKey, $paymentMethod);
 
         $payload = [
             'transaction_details' => [
                 'order_id' => $order->order_number,
-                'gross_amount' => $this->convertToGrossAmount($order->grand_total),
+                'gross_amount' => $this->convertToGrossAmount($order->total_amount),
             ],
             'item_details' => $itemDetails,
             'customer_details' => $customerDetails,
-            'enabled_payments' => $enabledPayments,
             'credit_card' => [
                 'secure' => true,
             ],
         ];
+
+        if (! empty($enabledPayments)) {
+            $payload['enabled_payments'] = $enabledPayments;
+        }
+
+        // Jika metode yang dipilih adalah bank transfer, set default bank (misalnya BCA).
+        if ($paymentMethodKey === 'bank_transfer') {
+            $payload['bank_transfer'] = [
+                'bank' => 'bca',
+            ];
+        }
 
         $response = $this->snapClient()
             ->post('/snap/v1/transactions', $payload)
@@ -140,6 +156,27 @@ class MidtransService
     protected function convertToGrossAmount(float $value): int
     {
         return (int) round($value);
+    }
+
+    /**
+     * Determine enabled payment channels for selected method.
+     */
+    protected function resolveEnabledPayments(string $paymentMethodKey, array $paymentMethod): array
+    {
+        $configured = array_values(array_filter($paymentMethod['enabled_payments'] ?? []));
+
+        if (! empty($configured)) {
+            return $configured;
+        }
+
+        $defaults = match ($paymentMethodKey) {
+            'bank_transfer' => ['bank_transfer'],
+            'qris' => ['qris'],
+            'ewallet' => ['gopay', 'shopeepay'],
+            default => array_filter([$paymentMethodKey]),
+        };
+
+        return array_values($defaults);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
 use App\Http\Requests\CheckoutShippingRequest;
+use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -151,81 +152,83 @@ class CheckoutController extends Controller
                 $midtrans,
                 $paymentMethodKey
             ) {
-            $itemsTotal = $cartItems->sum('subtotal');
-            $shippingCost = $selectedRate['cost'];
-            $grandTotal = $itemsTotal + $shippingCost;
+                $itemsTotal = $cartItems->sum('subtotal');
+                $shippingCost = $selectedRate['cost'];
+                $grandTotal = $itemsTotal + $shippingCost;
 
-            $order = Order::create([
-                'user_id' => $user->id,
-                'address_id' => $address->id,
-                'total_amount' => $itemsTotal,
-                'shipping_cost' => $shippingCost,
-                'grand_total' => $grandTotal,
-                'order_status' => 'pending',
-                'notes' => $request->validated('notes'),
-                'payment_method' => $paymentMethodKey,
-                'order_time' => now(),
-            ]);
-
-            foreach ($cartItems as $cartItem) {
-                if ($cartItem->product && $cartItem->product->stock < $cartItem->quantity) {
-                    throw new \RuntimeException(__('Stok :name tidak mencukupi.', ['name' => $cartItem->product->name]));
-                }
-
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem->product?->id,
-                    'product_name' => $cartItem->product?->name ?? __('Produk'),
-                    'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->price,
+                $order = Order::create([
+                    'user_id' => $user->id,
+                    'recipient_name' => $address->recipient_name,
+                    'phone' => $address->phone,
+                    'full_address' => $this->formatFullAddress($address),
+                    'subtotal_amount' => $itemsTotal,
+                    'shipping_cost' => $shippingCost,
+                    'total_amount' => $grandTotal,
+                    'order_status' => 'pending',
+                    'notes' => $request->validated('notes'),
+                    'payment_method' => $paymentMethodKey,
+                    'order_time' => now(),
                 ]);
 
-                if ($cartItem->product) {
-                    $updatedRows = $cartItem->product
-                        ->newQuery()
-                        ->whereKey($cartItem->product->getKey())
-                        ->where('stock', '>=', $cartItem->quantity)
-                        ->decrement('stock', $cartItem->quantity);
-
-                    if (! $updatedRows) {
+                foreach ($cartItems as $cartItem) {
+                    if ($cartItem->product && $cartItem->product->stock < $cartItem->quantity) {
                         throw new \RuntimeException(__('Stok :name tidak mencukupi.', ['name' => $cartItem->product->name]));
                     }
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $cartItem->product?->id,
+                        'product_name' => $cartItem->product?->name ?? __('Produk'),
+                        'quantity' => $cartItem->quantity,
+                        'price' => $cartItem->price,
+                    ]);
+
+                    if ($cartItem->product) {
+                        $updatedRows = $cartItem->product
+                            ->newQuery()
+                            ->whereKey($cartItem->product->getKey())
+                            ->where('stock', '>=', $cartItem->quantity)
+                            ->decrement('stock', $cartItem->quantity);
+
+                        if (! $updatedRows) {
+                            throw new \RuntimeException(__('Stok :name tidak mencukupi.', ['name' => $cartItem->product->name]));
+                        }
+                    }
                 }
-            }
 
-            $shipment = Shipment::create([
-                'order_id' => $order->id,
-                'courier_code' => $selectedRate['courier_code'],
-                'courier_service_code' => $selectedRate['courier_service_code'],
-                'courier_name' => $selectedRate['courier_company'],
-                'courier_service' => $selectedRate['courier_service_name'],
-                'shipping_cost' => $shippingCost,
-                'estimation_days' => $selectedRate['duration_max'] ?? $selectedRate['duration_min'] ?? null,
-                'status' => 'processing',
-                'rate_payload' => $selectedRate['raw'] ?? null,
-            ]);
+                $shipment = Shipment::create([
+                    'order_id' => $order->id,
+                    'courier_code' => $selectedRate['courier_code'],
+                    'courier_service_code' => $selectedRate['courier_service_code'],
+                    'courier_name' => $selectedRate['courier_company'],
+                    'courier_service' => $selectedRate['courier_service_name'],
+                    'shipping_cost' => $shippingCost,
+                    'estimation_days' => $selectedRate['duration_max'] ?? $selectedRate['duration_min'] ?? null,
+                    'status' => 'processing',
+                    'rate_payload' => $this->buildShipmentMetadata($selectedRate, $address),
+                ]);
 
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'payment_type' => $paymentMethodKey,
-                'gross_amount' => $grandTotal,
-                'payment_status' => 'pending',
-            ]);
+                $payment = Payment::create([
+                    'order_id' => $order->id,
+                    'payment_type' => $paymentMethodKey,
+                    'gross_amount' => $grandTotal,
+                    'payment_status' => 'pending',
+                ]);
 
-            Cart::query()
-                ->whereIn('id', $cartItems->pluck('id'))
-                ->update(['status' => 'checked_out']);
+                Cart::query()
+                    ->whereIn('id', $cartItems->pluck('id'))
+                    ->update(['status' => 'checked_out']);
 
-            $itemDetails = $this->buildItemDetails($order);
-            $customerDetails = $this->buildCustomerDetails($user->name, $user->email, $address);
+                $itemDetails = $this->buildItemDetails($order);
+                $customerDetails = $this->buildCustomerDetails($user->name, $user->email, $address);
 
-            $midtrans->createSnapTransaction(
-                order: $order->fresh('items'),
-                payment: $payment,
-                itemDetails: $itemDetails,
-                customerDetails: $customerDetails,
-                paymentMethodKey: $paymentMethodKey,
-            );
+                $midtrans->createSnapTransaction(
+                    order: $order->fresh('items'),
+                    payment: $payment,
+                    itemDetails: $itemDetails,
+                    customerDetails: $customerDetails,
+                    paymentMethodKey: $paymentMethodKey,
+                );
 
                 return [$order, $payment->fresh(), $shipment];
             });
@@ -265,7 +268,7 @@ class CheckoutController extends Controller
 
         $order = Order::query()
             ->where('order_number', $payload['order_id'] ?? null)
-            ->with(['payment', 'shipment', 'items.product', 'address'])
+            ->with(['payment', 'shipment', 'items.product'])
             ->first();
 
         if (! $order) {
@@ -302,7 +305,7 @@ class CheckoutController extends Controller
         return response()->json(['message' => 'Webhook processed.']);
     }
 
-    protected function getCartItems(int $userId): Collection
+    protected function getCartItems(string $userId): Collection
     {
         return Cart::query()
             ->with('product.category')
@@ -318,6 +321,41 @@ class CheckoutController extends Controller
             'items' => $cartItems->sum('quantity'),
             'subtotal' => $cartItems->sum('subtotal'),
             'distinct' => $cartItems->count(),
+        ];
+    }
+
+    protected function formatFullAddress(Address $address): string
+    {
+        return collect([
+            $address->detail,
+            $address->district,
+            $address->city,
+            $address->province,
+            $address->postal_code,
+        ])->filter()->implode(', ');
+    }
+
+    protected function buildAddressSnapshot(Address $address): array
+    {
+        return [
+            'address_id' => $address->id,
+            'recipient_name' => $address->recipient_name,
+            'phone' => $address->phone,
+            'detail' => $address->detail,
+            'district' => $address->district,
+            'city' => $address->city,
+            'province' => $address->province,
+            'postal_code' => $address->postal_code,
+            'biteship_area_id' => $address->biteship_area_id,
+        ];
+    }
+
+    protected function buildShipmentMetadata(array $selectedRate, Address $address): array
+    {
+        return [
+            'selected_rate' => $selectedRate,
+            'destination' => $this->buildAddressSnapshot($address),
+            'full_address' => $this->formatFullAddress($address),
         ];
     }
 
@@ -342,7 +380,7 @@ class CheckoutController extends Controller
         return MidtransService::make()->normalizeItemDetails($items);
     }
 
-    protected function buildCustomerDetails(string $name, string $email, $address): array
+    protected function buildCustomerDetails(string $name, string $email, Address $address): array
     {
         return [
             'first_name' => $name,

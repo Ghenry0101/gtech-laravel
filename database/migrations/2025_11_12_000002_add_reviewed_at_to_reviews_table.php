@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('reviews', function (Blueprint $table) {
-            if (! Schema::hasColumn('reviews', 'reviewed_at')) {
-                $table->timestamp('reviewed_at')->nullable()->after('image');
-            }
-        });
+        if (! Schema::hasColumn('reviews', 'reviewed_at')) {
+            Schema::table('reviews', function (Blueprint $table) {
+                $table->timestamp('reviewed_at')->nullable()->after('comment');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('reviews', function (Blueprint $table) {
-            if (Schema::hasColumn('reviews', 'reviewed_at')) {
+        if (Schema::hasColumn('reviews', 'reviewed_at')) {
+            Schema::table('reviews', function (Blueprint $table) {
                 $table->dropColumn('reviewed_at');
-            }
-        });
+            });
+        }
     }
 };

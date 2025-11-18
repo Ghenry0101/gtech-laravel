@@ -20,6 +20,12 @@
                     'active' => ['admin.barang.categories.index', 'admin.barang.categories.create', 'admin.barang.categories.edit'],
                     'show' => Route::has('admin.barang.categories.index'),
                 ],
+                [
+                    'title' => __('Brand Produk'),
+                    'route' => 'admin.barang.brands.index',
+                    'active' => ['admin.barang.brands.index', 'admin.barang.brands.create', 'admin.barang.brands.edit'],
+                    'show' => Route::has('admin.barang.brands.index'),
+                ],
             ];
         @endphp
 

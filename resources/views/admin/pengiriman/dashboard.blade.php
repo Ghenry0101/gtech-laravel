@@ -96,7 +96,7 @@
                                     </span>
                                 </div>
                                 <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
-                                    <span>{{ __('Total') }}: <strong class="text-slate-900">Rp {{ number_format($paidOrder->grand_total, 0, ',', '.') }}</strong></span>
+                                    <span>{{ __('Total') }}: <strong class="text-slate-900">Rp {{ number_format($paidOrder->total_amount, 0, ',', '.') }}</strong></span>
                                     <span>{{ __('Kurir') }}: {{ $paidOrder->shipment?->courier_name ?? '-' }}</span>
                                 </div>
                             </article>
@@ -125,7 +125,7 @@
                                     </span>
                                 </div>
                                 <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
-                                    <span>{{ __('Total') }}: <strong class="text-slate-900">Rp {{ number_format($unpaidOrder->grand_total, 0, ',', '.') }}</strong></span>
+                                    <span>{{ __('Total') }}: <strong class="text-slate-900">Rp {{ number_format($unpaidOrder->total_amount, 0, ',', '.') }}</strong></span>
                                     <span>{{ __('Dibuat') }}: {{ optional($unpaidOrder->order_time ?? $unpaidOrder->created_at)->format('d M H:i') }}</span>
                                 </div>
                             </article>
@@ -190,7 +190,18 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <p class="font-semibold text-slate-900">{{ $order->shipment?->courier_name ?? __('-') }}</p>
-                                    <p class="text-xs text-slate-500">{{ $order->shipment?->tracking_id ?: __('Resi belum ada') }}</p>
+                                    @php
+                                        $trackingId = $order->shipment?->tracking_id;
+                                        $waybillId = $order->shipment?->waybill_id;
+                                    @endphp
+                                    @if ($trackingId || $waybillId)
+                                        <p class="text-xs text-slate-500">{{ __('Resi: :resi', ['resi' => $trackingId ?? $waybillId]) }}</p>
+                                        @if ($waybillId && $trackingId !== $waybillId)
+                                            <p class="text-xs text-slate-400">{{ __('Waybill: :waybill', ['waybill' => $waybillId]) }}</p>
+                                        @endif
+                                    @else
+                                        <p class="text-xs text-slate-500">{{ __('Resi belum ada') }}</p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 space-y-1">
                                     <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadges[$order->order_status] ?? 'bg-slate-100 text-slate-600' }}">
@@ -214,7 +225,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <p class="font-semibold text-slate-900">
-                                        Rp {{ number_format($order->grand_total, 0, ',', '.') }}
+                                        Rp {{ number_format($order->total_amount, 0, ',', '.') }}
                                     </p>
                                     <p class="text-xs text-slate-500">
                                         {{ __('+ :count item', ['count' => $order->items?->sum('quantity') ?? 0]) }}

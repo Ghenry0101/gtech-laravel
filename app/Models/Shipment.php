@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Shipment extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'order_id',
@@ -16,12 +21,14 @@ class Shipment extends Model
         'courier_name',
         'courier_service',
         'tracking_id',
+        'waybill_id',
         'biteship_order_id',
         'shipping_cost',
         'status',
         'estimation_days',
         'shipped_at',
         'delivered_at',
+        'label_url',
         'rate_payload',
     ];
 

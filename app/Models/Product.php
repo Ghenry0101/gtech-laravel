@@ -2,16 +2,34 @@
 
 namespace App\Models;
 
+use App\Support\SkuGenerator;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the primary key.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
 
     protected $fillable = [
+        'brand_id',
         'category_id',
+        'sku',
         'name',
         'slug',
         'description',
@@ -49,16 +67,33 @@ class Product extends Model
 
         static::creating(function ($product) {
             $product->slug = $product->slug ?: static::generateUniqueSlug($product->name);
+
+            if (! $product->sku) {
+                $product->sku = SkuGenerator::make()->generateUsingContext(
+                    productName: $product->name,
+                    categoryName: $product->categoryNameForSku(),
+                    brandName: $product->brandNameForSku(),
+                );
+            }
         });
 
         static::updating(function ($product) {
             if ($product->isDirty('name')) {
                 $product->slug = static::generateUniqueSlug($product->name, $product->getKey());
             }
+
+            if (! $product->sku) {
+                $product->sku = SkuGenerator::make()->generateUsingContext(
+                    productName: $product->name,
+                    categoryName: $product->categoryNameForSku(),
+                    brandName: $product->brandNameForSku(),
+                    ignoreProductId: $product->getKey(),
+                );
+            }
         });
     }
 
-    protected static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    protected static function generateUniqueSlug(string $name, ?string $ignoreId = null): string
     {
         $baseSlug = Str::slug($name) ?: Str::slug(Str::random(8));
         $slug = $baseSlug;
@@ -114,9 +149,44 @@ class Product extends Model
         return (float) $this->price;
     }
 
+    protected function categoryNameForSku(): ?string
+    {
+        if ($this->relationLoaded('category')) {
+            return $this->category?->name;
+        }
+
+        if (! $this->category_id) {
+            return null;
+        }
+
+        return $this->category()
+            ->withoutGlobalScopes()
+            ->value('name');
+    }
+
+    protected function brandNameForSku(): ?string
+    {
+        if ($this->relationLoaded('brand')) {
+            return $this->brand?->name;
+        }
+
+        if (! $this->brand_id) {
+            return null;
+        }
+
+        return $this->brand()
+            ->withoutGlobalScopes()
+            ->value('name');
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
     public function reviews()
     {

@@ -2,6 +2,8 @@
     $isEdit = isset($product);
     $imagePath = $isEdit ? data_get($product, 'product_image') : null;
     $existingImageUrl = $imagePath ? asset('storage/' . $imagePath) : '';
+    $initialName = old('name', data_get($product ?? null, 'name', ''));
+    $initialSku = data_get($product ?? null, 'sku');
     $priceValue = old('price', data_get($product ?? null, 'price', 0));
     $discountPercentValue = old('discount_percent', data_get($product ?? null, 'discount_percent'));
     $discountPriceValue = old('discount_price', data_get($product ?? null, 'discount_price'));
@@ -16,6 +18,11 @@
     $discountActiveOld = old('discount_active');
     $hasPreviousDiscount = filled($discountPercentValue) || filled($discountPriceValue);
     $discountActive = $discountActiveOld !== null ? (bool) (int) $discountActiveOld : $hasPreviousDiscount;
+    $brands = $brands ?? collect();
+    $initialCategoryId = old('category_id', data_get($product ?? null, 'category_id'));
+    $initialBrandId = old('brand_id', data_get($product ?? null, 'brand_id'));
+    $initialCategoryValue = (string) ($initialCategoryId ?? '');
+    $initialBrandValue = (string) ($initialBrandId ?? '');
 @endphp
 
 <div
@@ -83,7 +90,7 @@
             } else {
                 this.imagePreview = '';
             }
-        }
+        },
     }"
     x-init="if (discountActive) { if (discountPercent) { syncDiscountFromPercent(); } else if (discountPrice) { syncDiscountFromPrice(); } }"
     class="space-y-8"
@@ -103,6 +110,20 @@
             <x-input-error class="mt-1" :messages="$errors->get('name')" />
         </div>
 
+        <div class="space-y-2">
+            <x-input-label for="sku" :value="__('SKU')" />
+            <x-text-input
+                id="sku"
+                type="text"
+                class="mt-1 block w-full font-mono text-sm text-slate-700"
+                value="{{ $initialSku }}"
+                readonly
+            />
+            <p class="text-xs text-slate-500">
+                {{ __('SKU mengikuti pola KATEGORI-BRAND-MODEL-XX dan tidak dapat diubah.') }}
+            </p>
+        </div>
+
         <div class="space-y-1">
             <x-input-label for="category_id" :value="__('Kategori')" />
             <select
@@ -118,6 +139,23 @@
                 @endforeach
             </select>
             <x-input-error class="mt-1" :messages="$errors->get('category_id')" />
+        </div>
+
+        <div class="space-y-1">
+            <x-input-label for="brand_id" :value="__('Brand')" />
+            <select
+                id="brand_id"
+                name="brand_id"
+                class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring focus:ring-slate-200"
+            >
+                <option value="">{{ __('Tanpa Brand') }}</option>
+                @foreach ($brands as $brand)
+                    <option value="{{ $brand->id }}" @selected(old('brand_id', data_get($product ?? null, 'brand_id')) == $brand->id)>
+                        {{ $brand->name }}
+                    </option>
+                @endforeach
+            </select>
+            <x-input-error class="mt-1" :messages="$errors->get('brand_id')" />
         </div>
 
         <div class="space-y-1 md:col-span-2">

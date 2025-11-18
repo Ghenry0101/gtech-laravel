@@ -3,6 +3,7 @@
 namespace App\Services\Shipping;
 
 use App\Models\Order;
+use App\Models\Shipment as ShipmentModel;
 use App\Services\Biteship\BiteshipService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -25,23 +26,39 @@ class ShipmentDispatcher
      */
     public function dispatch(Order $order): bool
     {
-        $order->loadMissing(['shipment', 'address', 'items.product']);
+        $order->loadMissing(['shipment', 'items.product']);
 
         $shipment = $order->shipment;
-        $address = $order->address;
-
-        if (! $shipment || ! $address) {
+        if (! $shipment) {
             return false;
         }
 
-        if ($shipment->biteship_order_id && $shipment->tracking_id) {
+        $destination = $this->resolveDestinationData($shipment, $order);
+
+        if (! $destination) {
+            $this->assignFallbackTracking($order, 'missing_destination_snapshot');
+
+            return false;
+        }
+
+        if ($shipment->biteship_order_id && $shipment->tracking_id && $shipment->waybill_id) {
             return true;
         }
 
-        if ($shipment->biteship_order_id && ! $shipment->tracking_id) {
+        if ($shipment->biteship_order_id && (! $shipment->tracking_id || ! $shipment->waybill_id)) {
             $this->assignFallbackTracking($order, 'missing_tracking_existing_biteship');
 
             return true;
+        }
+
+        if (empty($destination['biteship_area_id'])) {
+            Log::warning('Shipment destination missing Biteship area id.', [
+                'order_id' => $order->id,
+                'shipment_id' => $shipment->id,
+            ]);
+            $this->assignFallbackTracking($order, 'missing_destination_area');
+
+            return false;
         }
 
         $origin = config('biteship.origin', []);
@@ -49,16 +66,17 @@ class ShipmentDispatcher
             Log::warning('Biteship origin configuration missing. Skip dispatch.', [
                 'order_id' => $order->id,
             ]);
-            $this->assignFallbackTracking($order, 'missing_origin');
+        $this->assignFallbackTracking($order, 'missing_origin');
 
-            return false;
-        }
+        return false;
+    }
 
         $ratePayload = $shipment->rate_payload ?? [];
-        $courierType = $this->extractCourierType($shipment->courier_service_code, $ratePayload);
-        $courierCompany = data_get($ratePayload, 'courier.company')
+        $selectedRate = data_get($ratePayload, 'selected_rate', $ratePayload);
+        $courierType = $this->extractCourierType($shipment->courier_service_code, $selectedRate);
+        $courierCompany = data_get($selectedRate, 'courier.company')
             ?? $shipment->courier_name
-            ?? Arr::get($ratePayload, 'courier_code');
+            ?? Arr::get($selectedRate, 'courier_code');
 
         $itemsPayload = $order->items->map(function ($item) {
             $weight = (int) ($item->product?->weight ?? 500);
@@ -79,11 +97,11 @@ class ShipmentDispatcher
             'origin_address' => $origin['address'] ?? null,
             'origin_postal_code' => $origin['postal_code'] ?? null,
             'origin_area_id' => $origin['area_id'] ?? null,
-            'destination_contact_name' => $address->recipient_name,
-            'destination_contact_phone' => $address->phone,
-            'destination_address' => $address->detail,
-            'destination_postal_code' => $address->postal_code,
-            'destination_area_id' => $address->biteship_area_id,
+            'destination_contact_name' => $destination['recipient_name'] ?? $order->recipient_name,
+            'destination_contact_phone' => $destination['phone'] ?? $order->phone,
+            'destination_address' => $destination['detail'] ?? ($destination['full_address'] ?? $order->full_address),
+            'destination_postal_code' => $destination['postal_code'] ?? null,
+            'destination_area_id' => $destination['biteship_area_id'] ?? null,
             'courier_company' => $courierCompany,
             'courier_type' => $courierType,
             'items' => $itemsPayload,
@@ -93,10 +111,10 @@ class ShipmentDispatcher
             ],
         ];
 
-        $payload['distance'] = data_get($ratePayload, 'distance')
-            ?? data_get($ratePayload, 'summary.distance');
+        $payload['distance'] = data_get($selectedRate, 'distance')
+            ?? data_get($selectedRate, 'summary.distance');
 
-        if ($deliveryType = $this->determineDeliveryType($ratePayload, $courierType)) {
+        if ($deliveryType = $this->determineDeliveryType($selectedRate, $courierType)) {
             $payload['delivery_type'] = $deliveryType;
         }
 
@@ -109,16 +127,20 @@ class ShipmentDispatcher
                 ?? data_get($response, 'courier.tracking_id')
                 ?? data_get($response, 'waybill_id')
                 ?? $shipment->tracking_id;
+            $waybillId = $response['waybill_id']
+                ?? data_get($response, 'courier.waybill_id')
+                ?? ($shipment->waybill_id ?: $trackingId);
 
             $shipment->forceFill([
                 'biteship_order_id' => $response['id'] ?? $response['order_id'] ?? $shipment->biteship_order_id,
                 'tracking_id' => $trackingId,
+                'waybill_id' => $waybillId,
                 'status' => $response['status'] ?? 'processing',
                 'rate_payload' => array_merge($shipment->rate_payload ?? [], ['order' => $response]),
                 'shipped_at' => $shipment->shipped_at ?? now(),
             ])->save();
 
-            if (! $shipment->tracking_id) {
+            if (! $shipment->tracking_id || ! $shipment->waybill_id) {
                 $this->assignFallbackTracking($order, 'biteship_no_tracking');
             }
 
@@ -174,21 +196,37 @@ class ShipmentDispatcher
     {
         $shipment = $order->shipment;
 
-        if (! $shipment || $shipment->tracking_id) {
+        if (! $shipment) {
+            return;
+        }
+
+        $needsTracking = blank($shipment->tracking_id);
+        $needsWaybill = blank($shipment->waybill_id);
+
+        if (! $needsTracking && ! $needsWaybill) {
             return;
         }
 
         $code = $this->generateFallbackTrackingCode($order);
-
-        $shipment->forceFill([
-            'tracking_id' => $code,
+        $updates = [
             'status' => $shipment->status ?? 'processing',
             'shipped_at' => $shipment->shipped_at ?? now(),
-        ])->save();
+        ];
+
+        if ($needsTracking) {
+            $updates['tracking_id'] = $code;
+        }
+
+        if ($needsWaybill) {
+            $updates['waybill_id'] = $code;
+        }
+
+        $shipment->forceFill($updates)->save();
 
         Log::info('Assign fallback tracking id', [
             'order_id' => $order->id,
             'tracking_id' => $code,
+            'waybill_id' => $updates['waybill_id'] ?? $shipment->waybill_id,
             'reason' => $reason,
         ]);
     }
@@ -196,7 +234,34 @@ class ShipmentDispatcher
     protected function generateFallbackTrackingCode(Order $order): string
     {
         $prefix = sprintf('GT-%s-', now()->format('ymd'));
+        $random = Str::upper(Str::random(4));
+        $idSuffix = Str::upper(substr((string) $order->id, -6));
 
-        return $prefix.Str::upper(Str::random(5)).sprintf('%04d', $order->id % 10000);
+        return $prefix.$random.$idSuffix;
+    }
+
+    protected function resolveDestinationData(ShipmentModel $shipment, Order $order): ?array
+    {
+        $payload = $shipment->rate_payload ?? [];
+        $destination = data_get($payload, 'destination');
+
+        if (is_array($destination) && ! empty($destination)) {
+            $destination['full_address'] = $destination['full_address'] ?? data_get($payload, 'full_address');
+
+            return $destination;
+        }
+
+        if ($order->recipient_name || $order->full_address) {
+            return [
+                'recipient_name' => $order->recipient_name,
+                'phone' => $order->phone,
+                'detail' => $order->full_address,
+                'full_address' => $order->full_address,
+                'postal_code' => null,
+                'biteship_area_id' => null,
+            ];
+        }
+
+        return null;
     }
 }

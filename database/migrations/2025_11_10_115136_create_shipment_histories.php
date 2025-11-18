@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shipment_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shipment_id')->constrained('shipments')->cascadeOnDelete();
+            $table->foreignUlid('shipment_id')->constrained('shipments')->cascadeOnDelete();
             $table->enum('status', ['created','picked_up','in_transit','delivered','returned','failed']);
             $table->text('note')->nullable();
             $table->timestamps();
