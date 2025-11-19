@@ -13,30 +13,30 @@
     @include('layouts.partials.nav-admin-pengiriman')
 @else
     <nav x-data="{ open: false }" class="border-b border-gray-100 bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-8">
+        <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex flex-1 items-center gap-4">
                 <a href="{{ route('home') }}">
-                    <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                    <img src="{{ asset('images/G-Tech.png') }}" class="block h-5 w-auto fill-current text-gray-800" />
                 </a>
-            <div class="hidden sm:flex flex-1">
-                <form action="{{ route('search') }}" method="GET" class="relative w-full">
-                    <input type="text" name="query" value="{{ request('query', '') }}" aria-label="{{ __('Cari produk') }}"
-                        class="block w-full rounded-md border border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="{{ __('Cari') }}" />
+                <div class="flex-1">
+                    <form action="{{ route('search') }}" method="GET" class="relative">
+                        <input type="text" name="query" value="{{ request('query', '') }}" aria-label="{{ __('Cari produk') }}"
+                            class="block w-full rounded-md border border-gray-300 py-2 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="{{ __('Cari') }}" />
 
-                    <button type="submit"
-                        class="absolute top-0 right-0 px-3 py-1 text-gray-500 hover:text-gray-900">
-                        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M9 16.17l7.5-6.5c.8-.8.8-2.1 0-2.9-.8-.8-2.1-.8-2.9 0L9 16.17zm4.97-9.09c.4-.4 1.02-.4 1.42 0l6.97 6.03c.4.4.4 1.02 0 1.42-.4.4-1.02.4-1.42 0L13.03 5.97c-.4-.4-1.02-.4-1.42 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </form>
-            </div>
+                        <button type="submit"
+                            class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition hover:text-gray-900">
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M9 16.17l7.5-6.5c.8-.8.8-2.1 0-2.9-.8-.8-2.1-.8-2.9 0L9 16.17zm4.97-9.09c.4-.4 1.02-.4 1.42 0l6.97 6.03c.4.4.4 1.02 0 1.42-.4.4-1.02.4-1.42 0L13.03 5.97c-.4-.4-1.02-.4-1.42 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:space-x-4">
+            <div class="hidden sm:flex sm:items-center sm:space-x-1">
                 @auth
                     <a href="{{ route('cart.index') }}" class="inline-flex items-center  px-3 py-1 text-xs font-semibold uppercase tracking-wide">
                         <x-lucide-shopping-cart class="w-6 h-6 text-gray-500 hover:border-gray-300 hover:text-gray-900" />

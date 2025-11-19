@@ -16,7 +16,7 @@
     </x-slot>
 
     <div class="py-10">
-        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8">
             @if ($orders->isEmpty())
                 <div class="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
                     <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600">

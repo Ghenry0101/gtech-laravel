@@ -3,7 +3,7 @@
     $categoryMap = collect($categories ?? [])->filter(fn ($cat) => !empty($cat['slug']))->keyBy('slug');
     $slotDefinitions = collect([
         [
-            'label' => __('All Products'),
+            'label' => __('All Categories'),
             'slugs' => [null],
             'background' => config('storefront.category_backgrounds.default', 'images/PcBan.png'),
         ],
@@ -60,7 +60,7 @@
                 <p class="text-sm text-gray-600 max-w-md">
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
                 </p>
-                <a href="{{ route('products.index') }}" class="inline-block px-5 py-2 rounded-sm bg-black text-white font-semibold hover:opacity-90">DISCOVER</a>
+                
             </div>
             <div class="w-[35vw]">
                 <img class="w-full rounded-md" src="{{ asset('images/Pcban.png') }}" alt="PC preview">
@@ -138,4 +138,5 @@
             @include('components.product-grid', ['items' => $latest ?? []])
         </section>
     </section>
+    @include('partials.footer')
 </x-app-layout>

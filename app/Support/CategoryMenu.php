@@ -15,20 +15,75 @@ class CategoryMenu
     public static function active(): array
     {
         if (! Schema::hasTable('categories')) {
-            return [];
+            return collect(config('storefront.static_categories', []))
+                ->map(function (array $category) {
+                    $slug = $category['slug'];
+
+                    return [
+                        'id' => null,
+                        'name' => $category['name'],
+                        'slug' => $slug,
+                        'icon' => $category['icon'] ?? self::iconFor($slug),
+                        'background' => self::backgroundFor($slug),
+                    ];
+                })
+                ->values()
+                ->all();
         }
 
-        return Category::query()
+        $staticCategories = collect(config('storefront.static_categories', []))
+            ->map(function (array $category) {
+                $slug = $category['slug'];
+
+                return [
+                    'id' => null,
+                    'name' => $category['name'],
+                    'slug' => $slug,
+                    'icon' => $category['icon'] ?? self::iconFor($slug),
+                    'background' => self::backgroundFor($slug),
+                ];
+            })
+            ->keyBy('slug');
+
+        $dynamicCategories = Category::query()
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
-            ->map(fn (Category $category) => [
-                'id' => $category->id,
-                'name' => $category->name,
-                'slug' => $category->slug,
-                'icon' => self::iconFor($category->slug),
-                'background' => self::backgroundFor($category->slug),
-            ])
+            ->map(function (Category $category) {
+                $slug = $category->slug;
+
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $slug,
+                    'icon' => self::iconFor($slug),
+                    'background' => self::backgroundFor($slug),
+                ];
+            })
+            ->keyBy('slug');
+
+        $staticWithDynamic = $staticCategories->map(function (array $category) use ($dynamicCategories) {
+            $slug = $category['slug'];
+
+            if ($dynamicCategories->has($slug)) {
+                $dynamic = $dynamicCategories->get($slug);
+
+                return array_merge($category, [
+                    'id' => $dynamic['id'],
+                    'name' => $dynamic['name'] ?? $category['name'],
+                    'icon' => $dynamic['icon'] ?? $category['icon'],
+                    'background' => $dynamic['background'] ?? $category['background'],
+                ]);
+            }
+
+            return $category;
+        });
+
+        $remainingDynamic = $dynamicCategories->reject(fn ($_value, $slug) => $staticCategories->has($slug));
+
+        return $staticWithDynamic
+            ->merge($remainingDynamic)
+            ->values()
             ->all();
     }
 

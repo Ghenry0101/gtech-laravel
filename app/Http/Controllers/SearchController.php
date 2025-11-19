@@ -11,7 +11,7 @@ class SearchController extends Controller
     {
         $query = trim($request->string('query')->toString());
 
-        $params = [];
+        $params = ['categorySlug' => null];
         if ($query !== '') {
             $params['q'] = $query;
         }

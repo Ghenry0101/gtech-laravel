@@ -15,7 +15,8 @@ class OrderController extends Controller
         $orders = Order::query()
             ->with([
                 'items:id,order_id,product_name,quantity,price',
-                'items.review:id,order_item_id,rating,title,comment',
+                'items.review:id,order_item_id,rating,title,comment,reviewed_at',
+                'items.review.images:id,review_id,path,position',
                 'shipment:id,order_id,courier_name,courier_service,status,tracking_id',
                 'payment:id,order_id,payment_status,payment_type,paid_at',
             ])
@@ -38,9 +39,11 @@ class OrderController extends Controller
         $order->loadMissing([
             'items.product',
             'items.review',
+            'items.review.images',
             'shipment',
             'payment',
             'address',
+            'complaints',
         ]);
 
         $statusMeta = $this->statusMeta();

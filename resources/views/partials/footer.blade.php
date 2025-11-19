@@ -1,7 +1,7 @@
 <footer class="bg-[#0b0b0b] text-gray-200 mt-12 font-aerospace">
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
     <div>
-      <div class="font-black text-white text-lg">G-TECH</div>
+      <img src="{{ asset('images/G-Tech1.png') }}" alt="">
       <p class="mt-3 text-sm text-gray-400">Your trusted partner for PC components and builds.</p>
     </div>
     <div>

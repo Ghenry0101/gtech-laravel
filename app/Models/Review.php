@@ -14,7 +14,6 @@ class Review extends Model
         'rating',
         'title',
         'comment',
-        'image',
         'reviewed_at',
     ];
 
@@ -38,5 +37,10 @@ class Review extends Model
             'order_item_id',
             'product_id'
         );
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ReviewImage::class)->orderBy('position');
     }
 }

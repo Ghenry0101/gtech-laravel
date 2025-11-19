@@ -12,6 +12,8 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Admin\AdminComplaintController;
+use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\BiteshipAreaController;
 use App\Http\Controllers\OrderController;
@@ -58,7 +60,7 @@ Route::get('/home', $homePage)->name('home');
 
 Route::get('/products/{product:slug}', [StorefrontProductController::class, 'show'])
     ->name('products.show');
-Route::get('/produks/{category:slug?}', [StorefrontProductController::class, 'index'])
+Route::get('/produks/{categorySlug?}', [StorefrontProductController::class, 'index'])
     ->name('products.index');
 
 Route::middleware('auth')->group(function () {
@@ -70,7 +72,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/biteship/areas', BiteshipAreaController::class)->name('biteship.areas.search');
 });
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', $homePage, function () {
     return view('dashboard');
 })->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
@@ -81,6 +83,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order:order_number}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order:order_number}/complete', [OrderController::class, 'complete'])->name('orders.complete');
+    Route::post('/orders/{order:order_number}/complaints', [ComplaintController::class, 'store'])->name('orders.complaints.store');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -118,6 +121,9 @@ Route::middleware(['auth', 'role:admin_pengiriman'])
         Route::get('/orders/{order:order_number}', [AdminShippingController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order:order_number}/shipment', [AdminShippingController::class, 'updateShipment'])->name('orders.shipment.update');
         Route::patch('/orders/{order:order_number}/status', [AdminShippingController::class, 'updateStatus'])->name('orders.status.update');
+        Route::get('/complaints', [AdminComplaintController::class, 'index'])->name('complaints.index');
+        Route::get('/complaints/{complaint}', [AdminComplaintController::class, 'show'])->name('complaints.show');
+        Route::patch('/complaints/{complaint}', [AdminComplaintController::class, 'updateStatus'])->name('complaints.update');
     });
 
 require __DIR__.'/auth.php';

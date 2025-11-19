@@ -29,13 +29,18 @@
                 <p class="text-xs uppercase tracking-wide text-slate-400">{{ __('Admin Pengiriman') }}</p>
                 <h1 class="text-2xl font-semibold text-slate-900">{{ __('Dasbor Pengiriman Pesanan') }}</h1>
             </div>
-            <p class="text-sm text-slate-500">
-                {{ __('Pantau antrian, update status, dan catat resi secara cepat.') }}
-            </p>
+            <div class="flex flex-col gap-2 sm:items-end">
+                <p class="text-sm text-slate-500">
+                    {{ __('Pantau antrian, update status, dan catat resi secara cepat.') }}
+                </p>
+                <a href="{{ route('admin.shipping.complaints.index') }}" class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900">
+                    {{ __('Lihat Komplain Barang') }}
+                </a>
+            </div>
         </div>
     </x-slot>
 
-    <div class="py-10 space-y-8">
+    <div class="py-10 space-y-8 p-6">
         <section>
             <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-6">
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -155,7 +160,7 @@
                 </div>
                 <form method="GET" action="{{ route('admin.shipping.dashboard') }}" class="flex w-full max-w-md items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm shadow-sm">
                     <input type="hidden" name="status" value="{{ $filter }}">
-                    <input type="search" name="q" value="{{ $search }}" placeholder="{{ __('Cari nomor pesanan atau nama pelanggan') }}" class="w-full bg-transparent text-slate-700 placeholder:text-slate-400 focus:outline-none" />
+                    <input type="search" name="q" value="{{ $search }}" placeholder="{{ __('Cari nomor pesanan atau nama pelanggan') }}" class="w-full bg-transparent border-none text-slate-700 placeholder:text-slate-400 focus:outline-none" />
                     <button type="submit" class="text-slate-500 hover:text-slate-900">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-5.8-5.8M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" />

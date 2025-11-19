@@ -13,11 +13,16 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(Request $request, ?Category $category = null): View
+    public function index(Request $request, ?string $categorySlug = null): View
     {
-        if ($category && ! $category->is_active) {
-            abort(404);
+        $category = null;
+        if ($categorySlug) {
+            $category = Category::query()
+                ->where('slug', $categorySlug)
+                ->where('is_active', true)
+                ->first();
         }
+        $categoryMissing = $categorySlug !== null && $category === null;
 
         $searchInput = trim($request->string('q')->toString());
         if ($searchInput === '') {
@@ -27,9 +32,9 @@ class ProductController extends Controller
 
         if (! Schema::hasTable('products') || ! Schema::hasTable('categories')) {
             return view('products.index', [
-                'categories' => [],
+                'categories' => CategoryMenu::active(),
                 'items' => [],
-                'active' => null,
+                'active' => $categorySlug,
                 'search' => $searchInput,
                 'hasQuery' => $hasQuery,
             ]);
@@ -51,10 +56,12 @@ class ProductController extends Controller
             ->values()
             ->all();
 
-        $products = Product::query()
+        $productsQuery = Product::query()
             ->where('is_active', true)
-            ->when($category, fn ($query) => $query->where('category_id', $category->getKey()))
-            ->when($hasQuery, function ($query) use ($searchInput) {
+            ->when($category, fn ($query) => $query->where('category_id', $category->getKey()));
+
+        if (! $categoryMissing) {
+            $productsQuery->when($hasQuery, function ($query) use ($searchInput) {
                 $query->where(function ($builder) use ($searchInput) {
                     $builder
                         ->where('name', 'like', "%{$searchInput}%")
@@ -63,22 +70,30 @@ class ProductController extends Controller
                             $categoryQuery->where('name', 'like', "%{$searchInput}%");
                         });
                 });
-            })
-            ->latest('updated_at')
-            ->get();
+            });
+            $products = $productsQuery->latest('updated_at')->get();
+        } else {
+            $products = collect();
+        }
 
         return view('products.index', [
             'categories' => $categories,
             'items' => ProductCardViewModel::collection($products),
-            'active' => $category?->slug,
+            'active' => $categorySlug,
             'search' => $searchInput,
             'hasQuery' => $hasQuery,
+            'categoryMissing' => $categoryMissing,
         ]);
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         abort_unless($product->is_active, 404);
+
+        $selectedRating = $request->integer('rating');
+        if ($selectedRating < 1 || $selectedRating > 5) {
+            $selectedRating = null;
+        }
 
         $relatedProducts = Product::query()
             ->where('is_active', true)
@@ -88,17 +103,33 @@ class ProductController extends Controller
             ->take(4)
             ->get();
 
-        $reviews = $product->reviews()
-            ->with(['orderItem.order.user'])
-            ->latest('created_at')
-            ->take(6)
-            ->get();
+        $reviewsQuery = $product->reviews()
+            ->with(['orderItem.order.user', 'images'])
+            ->latest('created_at');
 
-        $reviewCount = $product->reviews()->count();
-        $averageRating = $reviewCount > 0 ? round((float) $product->reviews()->avg('rating'), 1) : null;
+        if ($selectedRating) {
+            $reviewsQuery->where('rating', $selectedRating);
+        }
+
+        $reviews = $reviewsQuery->paginate(6)->withQueryString();
+
+        $baseReviewQuery = $product->reviews();
+        $reviewCount = (clone $baseReviewQuery)->count();
+        $averageRating = $reviewCount > 0 ? round((float) (clone $baseReviewQuery)->avg('rating'), 1) : null;
+        $distributionCounts = (clone $baseReviewQuery)
+            ->selectRaw('rating, COUNT(*) as aggregate')
+            ->groupBy('rating')
+            ->pluck('aggregate', 'rating');
+
+        $distribution = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $distribution[$i] = (int) ($distributionCounts->get($i) ?? 0);
+        }
+
         $reviewStats = [
             'count' => $reviewCount,
             'average' => $averageRating,
+            'distribution' => $distribution,
         ];
 
         return view('products.show', [
@@ -106,6 +137,7 @@ class ProductController extends Controller
             'relatedProducts' => $relatedProducts,
             'reviews' => $reviews,
             'reviewStats' => $reviewStats,
+            'selectedRating' => $selectedRating,
         ]);
     }
 

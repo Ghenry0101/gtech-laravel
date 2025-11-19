@@ -24,10 +24,10 @@
     </x-slot>
 
     <div class="py-10">
-        <div class="mx-auto max-w-6xl space-y-10 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-8xl space-y-10 sm:px-6 lg:px-8">
             <div class="grid gap-8 rounded-md border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-3">
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+                    <div class="overflow-hidden rounded-md border border-slate-200 bg-slate-50 ">
                         <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="h-full w-full object-cover">
                     </div>
 
@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="space-y-6">
-                    <div class="rounded-md border border-slate-200 bg-slate-900/95 p-6 text-white shadow-md">
+                    <div class="rounded-md border border-slate-200 bg-gray-900 p-6 text-white shadow-md">
                         <p class="text-xs uppercase tracking-wide text-slate-300">{{ __('Harga Promo') }}</p>
                         <p class="mt-2 text-4xl font-bold">
                             Rp {{ number_format($product->effective_price, 0, ',', '.') }}
@@ -132,18 +132,47 @@
             </div>
 
             <section class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <h3 class="text-lg font-semibold text-slate-900">{{ __('Ulasan Pelanggan') }}</h3>
-                        <p class="text-sm text-slate-500">{{ __('Kami menampilkan 6 ulasan terbaru.') }}</p>
+                        <p class="text-sm text-slate-500">
+                            @if ($selectedRating)
+                                {{ __('Menampilkan :count ulasan dengan rating :rating bintang.', ['count' => $reviews->total(), 'rating' => $selectedRating]) }}
+                            @else
+                                {{ __('Menampilkan :count ulasan terbaru.', ['count' => $reviews->total()]) }}
+                            @endif
+                        </p>
                     </div>
-                    @if ($reviewStats['count'])
-                        <div class="flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-amber-700">
-                            <strong class="text-xl">{{ number_format($reviewStats['average'], 1) }}/5</strong>
-                            <span class="text-xs uppercase tracking-wide">{{ __(':count ulasan', ['count' => $reviewStats['count']]) }}</span>
-                        </div>
-                    @endif
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6">
+                        @if ($reviewStats['count'])
+                            <div class="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-amber-700">
+                                <strong class="text-2xl">{{ number_format($reviewStats['average'], 1) }}</strong>
+                                <span class="text-xs uppercase tracking-wide">{{ __(':count ulasan', ['count' => $reviewStats['count']]) }}</span>
+                            </div>
+                        @endif
+                        <form method="GET" action="{{ route('products.show', $product) }}" class="flex flex-col text-sm">
+                            <label for="rating-filter" class="text-xs uppercase text-slate-400">{{ __('Filter Rating') }}</label>
+                            <select id="rating-filter" name="rating" class="mt-1 w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-0" onchange="this.form.submit()">
+                                <option value="">{{ __('Semua rating') }}</option>
+                                @foreach ($reviewStats['distribution'] as $rating => $count)
+                                    <option value="{{ $rating }}" @selected($selectedRating === $rating)>
+                                        {{ $rating }} ★ ({{ $count }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
                 </div>
+
+                @if ($reviewStats['count'])
+                    <div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
+                        @foreach ($reviewStats['distribution'] as $rating => $count)
+                            <span class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1">
+                                {{ $rating }} ★ &middot; {{ $count }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
 
                 <div class="mt-6 space-y-4">
                     @forelse ($reviews as $review)
@@ -165,11 +194,34 @@
                                 <span class="ml-2 text-xs text-slate-500">{{ number_format($review->rating, 1) }}</span>
                             </div>
                             <p class="mt-3 text-sm text-slate-600">{{ $review->comment ?: __('Pengguna tidak memberikan komentar tambahan.') }}</p>
+                            @if ($review->images->isNotEmpty())
+                                <div class="mt-3 flex flex-wrap gap-3">
+                                    @foreach ($review->images as $image)
+                                        <div class="relative">
+                                            <button type="button" class="block h-20 w-20 overflow-hidden rounded-xl border border-slate-200 bg-white" data-image-preview="{{ asset('storage/' . $image->path) }}">
+                                                <img src="{{ asset('storage/' . $image->path) }}" alt="{{ __('Foto ulasan pelanggan') }}" class="h-full w-full object-cover">
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </article>
                     @empty
-                        <p class="text-sm text-slate-500">{{ __('Belum ada ulasan untuk produk ini.') }}</p>
+                        <p class="text-sm text-slate-500">
+                            @if ($selectedRating)
+                                {{ __('Belum ada ulasan dengan rating :rating bintang.', ['rating' => $selectedRating]) }}
+                            @else
+                                {{ __('Belum ada ulasan untuk produk ini.') }}
+                            @endif
+                        </p>
                     @endforelse
                 </div>
+
+                @if (method_exists($reviews, 'hasPages') && $reviews->hasPages())
+                    <div class="mt-6">
+                        {{ $reviews->links() }}
+                    </div>
+                @endif
             </section>
 
             <section>
@@ -197,3 +249,7 @@
         </div>
     </div>
 </x-app-layout>
+
+@push('scripts')
+    @include('components.review-image-scripts')
+@endpush
