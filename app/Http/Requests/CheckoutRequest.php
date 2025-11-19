@@ -18,10 +18,7 @@ class CheckoutRequest extends FormRequest
             'address_id' => ['required', 'exists:addresses,id'],
             'shipping_courier_code' => ['required', 'string', 'max:50'],
             'shipping_service_code' => ['required', 'string', 'max:50'],
-            'payment_method' => [
-                'required',
-                Rule::in(array_keys(config('midtrans.payment_methods', []))),
-            ],
+            'payment_method' => ['required', 'string', 'in:bank_transfer,qris,ewallet'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }

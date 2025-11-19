@@ -52,7 +52,18 @@
                             </div>
                             <div class="rounded-xl border border-slate-100 p-4">
                                 <p class="text-xs uppercase text-slate-400">{{ __('Nomor Resi') }}</p>
-                                <p class="mt-1 text-sm font-semibold text-slate-900">{{ $order->shipment?->tracking_id ?? __('-') }}</p>
+                                @php
+                                    $trackingId = $order->shipment?->tracking_id;
+                                    $waybillId = $order->shipment?->waybill_id;
+                                @endphp
+                                @if ($trackingId || $waybillId)
+                                    <p class="mt-1 text-sm font-semibold text-slate-900">{{ $trackingId ?? $waybillId }}</p>
+                                    @if ($waybillId && $trackingId !== $waybillId)
+                                        <p class="text-xs text-slate-500">{{ __('Waybill: :waybill', ['waybill' => $waybillId]) }}</p>
+                                    @endif
+                                @else
+                                    <p class="mt-1 text-sm font-semibold text-slate-900">{{ __('-') }}</p>
+                                @endif
                                 <p class="text-xs text-slate-500">{{ __('Perbarui jika ada perubahan') }}</p>
                             </div>
                             <div class="rounded-xl border border-slate-100 p-4">
@@ -86,11 +97,12 @@
                         <div>
                             <p class="text-sm font-semibold text-slate-900">{{ __('Alamat Pengiriman') }}</p>
                             <div class="mt-2 text-sm text-slate-600">
-                                @if ($order->address)
-                                    <p class="font-semibold text-slate-900">{{ $order->address->recipient_name }}</p>
-                                    <p class="text-xs text-slate-500">{{ $order->address->phone }}</p>
-                                    <p class="mt-2">{{ $order->address->detail }}</p>
-                                    <p>{{ $order->address->district }}, {{ $order->address->city }}, {{ $order->address->province }} {{ $order->address->postal_code }}</p>
+                                @if ($order->recipient_name || $order->full_address)
+                                    <p class="font-semibold text-slate-900">{{ $order->recipient_name ?? __('Tanpa nama') }}</p>
+                                    @if ($order->phone)
+                                        <p class="text-xs text-slate-500">{{ $order->phone }}</p>
+                                    @endif
+                                    <p class="mt-2">{{ $order->full_address ?? __('Alamat belum tersedia.') }}</p>
                                 @else
                                     <p>{{ __('Alamat belum tersedia.') }}</p>
                                 @endif
@@ -101,7 +113,7 @@
                             <dl class="mt-2 space-y-1 text-sm text-slate-600">
                                 <div class="flex items-center justify-between">
                                     <dt>{{ __('Subtotal') }}</dt>
-                                    <dd class="font-semibold text-slate-900">{{ $formatCurrency($order->total_amount) }}</dd>
+                                    <dd class="font-semibold text-slate-900">{{ $formatCurrency($order->subtotal_amount) }}</dd>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <dt>{{ __('Ongkos Kirim') }}</dt>
@@ -109,7 +121,7 @@
                                 </div>
                                 <div class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2">
                                     <dt>{{ __('Total') }}</dt>
-                                    <dd class="text-lg font-semibold text-slate-900">{{ $formatCurrency($order->grand_total) }}</dd>
+                                    <dd class="text-lg font-semibold text-slate-900">{{ $formatCurrency($order->total_amount) }}</dd>
                                 </div>
                             </dl>
                             <p class="mt-2 text-xs text-slate-500">
@@ -146,6 +158,13 @@
                                 <label class="text-xs uppercase text-slate-400" for="tracking_id">{{ __('Nomor Resi') }}</label>
                                 <input type="text" name="tracking_id" id="tracking_id" value="{{ old('tracking_id', $order->shipment?->tracking_id) }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
                                 @error('tracking_id')
+                                    <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="text-xs uppercase text-slate-400" for="waybill_id">{{ __('Waybill Biteship (opsional)') }}</label>
+                                <input type="text" name="waybill_id" id="waybill_id" value="{{ old('waybill_id', $order->shipment?->waybill_id) }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                @error('waybill_id')
                                     <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -193,6 +212,14 @@
                                 <label class="text-xs uppercase text-slate-400" for="status_tracking_id">{{ __('Nomor Resi (opsional)') }}</label>
                                 <input type="text" name="tracking_id" id="status_tracking_id" value="{{ old('tracking_id') }}" placeholder="{{ $order->shipment?->tracking_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
                                 <p class="mt-1 text-xs text-slate-400">{{ __('Kosongkan untuk mempertahankan nilai sebelumnya.') }}</p>
+                            </div>
+                            <div>
+                                <label class="text-xs uppercase text-slate-400" for="status_waybill_id">{{ __('Waybill (opsional)') }}</label>
+                                <input type="text" name="waybill_id" id="status_waybill_id" value="{{ old('waybill_id') }}" placeholder="{{ $order->shipment?->waybill_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                <p class="mt-1 text-xs text-slate-400">{{ __('Biarkan kosong jika tidak ada pembaruan waybill.') }}</p>
+                                @error('waybill_id')
+                                    <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
+                                @enderror
                             </div>
                             <button type="submit" class="w-full rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600">
                                 {{ __('Perbarui Status') }}

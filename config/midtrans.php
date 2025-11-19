@@ -16,7 +16,7 @@ return [
         'bank_transfer' => [
             'label' => 'Transfer Bank (Virtual Account)',
             'description' => 'BCA, BNI, BRI, Permata',
-            'enabled_payments' => ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'bank_transfer'],
+            'enabled_payments' => ['bank_transfer'],
             'icon' => 'VA',
         ],
         'qris' => [

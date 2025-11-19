@@ -10,6 +10,7 @@
         ['label' => __('Berat'), 'value' => number_format($product->weight).' gr', 'helper' => __('dalam gram')],
         ['label' => __('Dimensi'), 'value' => $product->length.' x '.$product->width.' x '.$product->height.' cm', 'helper' => __('(P x L x T)')],
     ];
+    $ratingOptions = [5, 4, 3, 2, 1];
 @endphp
 
 <x-app-layout>
@@ -204,6 +205,7 @@
                                         </div>
                                     @endforeach
                                 </div>
+
                             @endif
                         </article>
                     @empty

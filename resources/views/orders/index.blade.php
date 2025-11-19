@@ -1,19 +1,19 @@
-@php
-    $formatCurrency = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
-@endphp
+    @php
+        $formatCurrency = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
+    @endphp
 
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p class="text-xs uppercase text-slate-400">{{ __('Pesanan') }}</p>
-                <h1 class="text-2xl font-semibold text-slate-900">{{ __('Riwayat Pemesanan') }}</h1>
+    <x-app-layout>
+        <x-slot name="header">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-xs uppercase text-slate-400">{{ __('Pesanan') }}</p>
+                    <h1 class="text-2xl font-semibold text-slate-900">{{ __('Riwayat Pemesanan') }}</h1>
+                </div>
+                <a href="{{ route('home') }}" class="text-sm text-slate-500 hover:text-slate-700">
+                    {{ __('Belanja Produk Lainnya') }}
+                </a>
             </div>
-            <a href="{{ route('home') }}" class="text-sm text-slate-500 hover:text-slate-700">
-                {{ __('Belanja Produk Lainnya') }}
-            </a>
-        </div>
-    </x-slot>
+        </x-slot>
 
     <div class="py-10">
         <div class="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8">
@@ -103,13 +103,92 @@
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
+                        <h2 class="text-lg font-semibold text-slate-900">{{ __('Belum ada pesanan') }}</h2>
+                        <p class="mt-2 text-sm text-slate-500">
+                            {{ __('Setelah checkout berhasil, pesanan Anda akan tampil di halaman ini.') }}
+                        </p>
+                        <a href="{{ route('home') }}" class="mt-6 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                            {{ __('Mulai Belanja') }}
+                        </a>
+                    </div>
+                @else
+                    <div class="space-y-4">
+                        @foreach ($orders as $order)
+                            @php
+                                $status = $statusMeta[$order->order_status] ?? null;
+                                $itemsCount = $order->items->sum('quantity');
+                                $firstItem = $order->items->first();
+                                $needsReview = $order->order_status === 'completed'
+                                    && $order->items->contains(fn ($item) => $item->review === null);
+                            @endphp
+                            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-xs uppercase text-slate-400">{{ __('Nomor Pesanan') }}</p>
+                                        <p class="text-lg font-semibold text-slate-900">{{ $order->order_number }}</p>
+                                        <p class="text-xs text-slate-500">
+                                            {{ __('Dibuat pada :date', ['date' => optional($order->order_time ?? $order->created_at)->format('d M Y H:i')]) }}
+                                        </p>
+                                    </div>
+                                    @if ($status)
+                                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $status['badge_class'] }}">
+                                            {{ $status['label'] }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                                    <div>
+                                        <p class="text-xs uppercase text-slate-400">{{ __('Ringkasan Barang') }}</p>
+                                        <p class="text-sm font-semibold text-slate-900">
+                                            {{ $itemsCount }} {{ __('item') }}
+                                        </p>
+                                        @if ($firstItem)
+                                            <p class="text-xs text-slate-500">
+                                                {{ $firstItem->product_name }}
+                                                @if ($order->items->count() > 1)
+                                                    {{ __('+ :count produk lainnya', ['count' => $order->items->count() - 1]) }}
+                                                @endif
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-slate-400">{{ __('Kurir') }}</p>
+                                        <p class="text-sm font-semibold text-slate-900">
+                                            {{ $order->shipment?->courier_name ?? __('-') }}
+                                        </p>
+                                        <p class="text-xs text-slate-500">{{ $order->shipment?->courier_service }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-slate-400">{{ __('Total Pembayaran') }}</p>
+                                        <p class="text-lg font-semibold text-slate-900">
+                                            {{ $formatCurrency($order->total_amount) }}
+                                        </p>
+                                        <p class="text-xs text-slate-500">{{ __('Status Pembayaran: :status', ['status' => __(\Illuminate\Support\Str::headline($order->payment?->payment_status ?? 'pending'))]) }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <p class="text-xs text-slate-500">
+                                        {{ __('Terakhir diperbarui :time', ['time' => optional($order->updated_at)->diffForHumans()]) }}
+                                    </p>
+                                    <div class="flex flex-wrap gap-3">
+                                        @if ($needsReview)
+                                            <a href="{{ route('orders.show', $order).'#order-review-section' }}" class="inline-flex items-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600">
+                                                {{ __('Tulis Ulasan') }}
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('orders.show', $order) }}" class="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900">
+                                            {{ __('Lihat Detail') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
 
-                <div class="mt-6">
-                    {{ $orders->links() }}
-                </div>
-            @endif
+                    <div class="mt-6">
+                        {{ $orders->links() }}
+                    </div>
+                @endif
+            </div>
         </div>
-    </div>
-</x-app-layout>
+    </x-app-layout>

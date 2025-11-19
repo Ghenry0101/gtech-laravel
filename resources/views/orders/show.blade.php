@@ -132,11 +132,12 @@
                             </div>
                         </div>
                         <div class="mt-4 text-sm text-slate-600">
-                            @if ($order->address)
-                                <p class="font-semibold text-slate-900">{{ $order->address->recipient_name }}</p>
-                                <p class="text-xs text-slate-500">{{ $order->address->phone }}</p>
-                                <p class="mt-2">{{ $order->address->detail }}</p>
-                                <p>{{ $order->address->district }}, {{ $order->address->city }}, {{ $order->address->province }} {{ $order->address->postal_code }}</p>
+                            @if ($order->recipient_name || $order->full_address)
+                                <p class="font-semibold text-slate-900">{{ $order->recipient_name ?? __('Tanpa nama') }}</p>
+                                @if ($order->phone)
+                                    <p class="text-xs text-slate-500">{{ $order->phone }}</p>
+                                @endif
+                                <p class="mt-2">{{ $order->full_address ?? __('Alamat tidak tersedia.') }}</p>
                             @else
                                 <p>{{ __('Alamat tidak tersedia.') }}</p>
                             @endif
@@ -158,7 +159,24 @@
                             <div>
                                 <dt class="text-xs uppercase text-slate-400">{{ __('Status Pengiriman') }}</dt>
                                 <dd class="text-sm font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($order->shipment?->status ?? '-') }}</dd>
-                                <p class="text-xs text-slate-500">{{ $order->shipment?->tracking_id ? __('Resi: :resi', ['resi' => $order->shipment->tracking_id]) : __('Resi belum tersedia') }}</p>
+                                @php
+                                    $trackingId = $order->shipment?->tracking_id;
+                                    $waybillId = $order->shipment?->waybill_id;
+                                    $hasTracking = filled($trackingId);
+                                    $hasWaybill = filled($waybillId);
+                                @endphp
+                                @if ($hasTracking || $hasWaybill)
+                                    <p class="text-xs text-slate-500">
+                                        {{ __('Nomor Resi: :resi', ['resi' => $trackingId ?? $waybillId]) }}
+                                    </p>
+                                    @if ($hasWaybill && $trackingId !== $waybillId)
+                                        <p class="text-xs text-slate-500">
+                                            {{ __('Waybill Biteship: :waybill', ['waybill' => $waybillId]) }}
+                                        </p>
+                                    @endif
+                                @else
+                                    <p class="text-xs text-slate-500">{{ __('Resi belum tersedia') }}</p>
+                                @endif
                             </div>
                         </dl>
                     </section>
@@ -220,7 +238,7 @@
                         <dl class="mt-4 space-y-3 text-sm text-slate-600">
                             <div class="flex items-center justify-between">
                                 <dt>{{ __('Subtotal') }}</dt>
-                                <dd class="font-semibold text-slate-900">{{ $formatCurrency($order->total_amount) }}</dd>
+                                <dd class="font-semibold text-slate-900">{{ $formatCurrency($order->subtotal_amount) }}</dd>
                             </div>
                             <div class="flex items-center justify-between">
                                 <dt>{{ __('Ongkos Kirim') }}</dt>
@@ -228,7 +246,7 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <dt>{{ __('Total Dibayar') }}</dt>
-                                <dd class="text-lg font-semibold text-slate-900">{{ $formatCurrency($order->grand_total) }}</dd>
+                                <dd class="text-lg font-semibold text-slate-900">{{ $formatCurrency($order->total_amount) }}</dd>
                             </div>
                         </dl>
                         <p class="mt-4 text-xs text-slate-500">
@@ -436,6 +454,7 @@
                                                     <button type="button" class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50" @click="addRow" :disabled="rows.length >= 5">
                                                         {{ __('Tambah Foto') }}
                                                     </button>
+
                                                     <p class="text-xs text-slate-400">{{ __('Format JPG, PNG, atau WEBP. Ukuran maksimal 10MB per foto.') }}</p>
                                                 </div>
                                                 @if ($errors->has('images') && $isCurrentForm)

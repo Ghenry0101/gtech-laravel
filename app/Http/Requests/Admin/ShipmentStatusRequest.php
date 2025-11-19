@@ -20,6 +20,7 @@ class ShipmentStatusRequest extends FormRequest
                 Rule::in(['processing', 'shipped', 'delivered']),
             ],
             'tracking_id' => ['nullable', 'string', 'max:160'],
+            'waybill_id' => ['nullable', 'string', 'max:160'],
         ];
     }
 }

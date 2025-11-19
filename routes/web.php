@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminBarangController;
 use App\Http\Controllers\Admin\AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\ProfileAddressController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CartController;
@@ -105,11 +106,16 @@ Route::middleware(['auth', 'role:admin_barang'])
     ->name('admin.')
     ->group(function () {
         Route::get('/barang', [AdminBarangController::class, 'index'])->name('barang.dashboard');
+        Route::post('/barang/products/generate-sku', [AdminProductController::class, 'generateSku'])
+            ->name('barang.products.generate-sku');
         Route::resource('barang/products', AdminProductController::class)
             ->names('barang.products')
             ->except(['show']);
         Route::resource('barang/categories', AdminCategoryController::class)
             ->names('barang.categories')
+            ->except(['show']);
+        Route::resource('barang/brands', AdminBrandController::class)
+            ->names('barang.brands')
             ->except(['show']);
     });
 

@@ -22,7 +22,7 @@
                 <form method="POST" action="{{ route('admin.barang.products.store') }}" enctype="multipart/form-data" class="space-y-8">
                     @csrf
 
-                    @include('admin.barang.products.partials.form', ['product' => null, 'categories' => $categories])
+                    @include('admin.barang.products.partials.form', ['product' => null, 'categories' => $categories, 'brands' => $brands])
                 </form>
             </div>
         </div>

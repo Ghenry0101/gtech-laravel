@@ -27,7 +27,7 @@
                     <form method="GET" class="w-full sm:w-auto">
                         <label for="search" class="sr-only">{{ __('Cari produk') }}</label>
                         <div class="relative">
-                            <input id="search" name="search" type="search" value="{{ $search }}" placeholder="{{ __('Cari produk, kategori...') }}" class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring focus:ring-slate-500/20 sm:w-72" />
+                            <input id="search" name="search" type="search" value="{{ $search }}" placeholder="{{ __('Cari produk, brand, kategori...') }}" class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring focus:ring-slate-500/20 sm:w-72" />
                             <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 20 20" fill="none">
                                 <path d="M9 3a6 6 0 104 10.74l3.13 3.13a1 1 0 01-1.42 1.42L11.6 15.2A6 6 0 009 3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
@@ -45,6 +45,7 @@
                             <tr>
                                 <th class="px-6 py-3">{{ __('Produk') }}</th>
                                 <th class="px-6 py-3">{{ __('Kategori') }}</th>
+                                <th class="px-6 py-3">{{ __('Brand') }}</th>
                                 <th class="px-6 py-3">{{ __('Harga') }}</th>
                                 <th class="px-6 py-3">{{ __('Stok') }}</th>
                                 <th class="px-6 py-3">{{ __('Dimensi (cm)') }}</th>
@@ -77,7 +78,16 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        {{ $product->category?->name ?? __('Tanpa kategori') }}
+                                        <div>
+                                            <p class="font-semibold text-slate-900">{{ $product->category?->name ?? __('Tanpa kategori') }}</p>
+                                            <p class="text-xs text-slate-500">{{ $product->category?->slug }}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div>
+                                            <p class="font-semibold text-slate-900">{{ $product->brand?->name ?? __('Tanpa Brand') }}</p>
+                                            <p class="text-xs text-slate-500">{{ $product->brand?->slug }}</p>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         @php
@@ -168,7 +178,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-10 text-center text-sm text-slate-500">
+                                    <td colspan="9" class="px-6 py-10 text-center text-sm text-slate-500">
                                         {{ __('Belum ada produk yang terdaftar.') }}
                                     </td>
                                 </tr>

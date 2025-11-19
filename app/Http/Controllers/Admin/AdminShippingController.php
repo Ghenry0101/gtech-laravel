@@ -32,7 +32,7 @@ class AdminShippingController extends Controller
             ->with([
                 'user:id,name,email,phone',
                 'items:id,order_id,quantity',
-                'shipment:id,order_id,courier_name,courier_service,status,tracking_id,shipping_cost,shipped_at,delivered_at,updated_at',
+                'shipment:id,order_id,courier_name,courier_service,status,tracking_id,waybill_id,shipping_cost,shipped_at,delivered_at,updated_at',
                 'payment:id,order_id,payment_status,gross_amount,paid_at',
             ])
             ->whereHas('shipment');
@@ -107,7 +107,7 @@ class AdminShippingController extends Controller
 
         $recentActivities = Order::query()
             ->with([
-                'shipment:id,order_id,status,tracking_id,updated_at',
+                'shipment:id,order_id,status,tracking_id,waybill_id,updated_at',
                 'user:id,name',
             ])
             ->whereHas('shipment')
@@ -137,7 +137,6 @@ class AdminShippingController extends Controller
             'items.product',
             'shipment',
             'payment',
-            'address',
             'user',
         ]);
 
@@ -153,7 +152,14 @@ class AdminShippingController extends Controller
     {
         abort_unless($order->shipment, 404);
 
-        $order->shipment->fill($request->validated())->save();
+        $payload = $request->validated();
+        foreach (['tracking_id', 'waybill_id'] as $key) {
+            if (array_key_exists($key, $payload) && $payload[$key] === '') {
+                $payload[$key] = null;
+            }
+        }
+
+        $order->shipment->fill($payload)->save();
 
         return back()
             ->with('status', 'shipment-updated')
@@ -173,6 +179,7 @@ class AdminShippingController extends Controller
             $shipment = $order->shipment;
             $status = $data['status'];
             $trackingId = $data['tracking_id'] ?? null;
+             $waybillId = $data['waybill_id'] ?? null;
 
             $shipmentUpdates = [
                 'status' => $status,
@@ -180,6 +187,10 @@ class AdminShippingController extends Controller
 
             if ($trackingId) {
                 $shipmentUpdates['tracking_id'] = $trackingId;
+            }
+
+            if ($waybillId) {
+                $shipmentUpdates['waybill_id'] = $waybillId;
             }
 
             if ($status === 'shipped') {
@@ -202,7 +213,10 @@ class AdminShippingController extends Controller
         });
 
         $order->refresh();
-        if ($data['status'] === 'shipped' && ! $order->shipment?->tracking_id) {
+        if (
+            $data['status'] === 'shipped'
+            && ($order->shipment?->tracking_id === null || $order->shipment?->waybill_id === null)
+        ) {
             ShipmentDispatcher::make()->dispatch($order);
         }
 

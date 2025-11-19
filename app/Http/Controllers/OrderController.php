@@ -17,7 +17,7 @@ class OrderController extends Controller
                 'items:id,order_id,product_name,quantity,price',
                 'items.review:id,order_item_id,rating,title,comment,reviewed_at',
                 'items.review.images:id,review_id,path,position',
-                'shipment:id,order_id,courier_name,courier_service,status,tracking_id',
+                'shipment:id,order_id,courier_name,courier_service,status,tracking_id,waybill_id',
                 'payment:id,order_id,payment_status,payment_type,paid_at',
             ])
             ->where('user_id', $request->user()->id)

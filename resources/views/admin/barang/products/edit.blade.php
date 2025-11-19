@@ -31,7 +31,7 @@
                     @csrf
                     @method('PUT')
 
-                    @include('admin.barang.products.partials.form', ['product' => $product, 'categories' => $categories])
+                    @include('admin.barang.products.partials.form', ['product' => $product, 'categories' => $categories, 'brands' => $brands])
                 </form>
             </div>
         </div>

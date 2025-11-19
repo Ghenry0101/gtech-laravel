@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,26 +10,43 @@ use Illuminate\Support\Str;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the primary key.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
 
     protected $fillable = [
         'user_id',
-        'address_id',
-        'order_number',
-        'total_amount',
+        'recipient_name',
+        'phone',
+        'tracking_code',
+        'full_address',
+        'subtotal_amount',
         'shipping_cost',
-        'grand_total',
+        'total_amount',
         'order_status',
         'notes',
+        'order_number',
         'payment_method',
         'order_time',
         'paid_at',
     ];
 
     protected $casts = [
+        'subtotal_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
-        'grand_total' => 'decimal:2',
         'paid_at' => 'datetime',
         'order_time' => 'datetime',
     ];
@@ -46,12 +64,6 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    // relasi ke alamat
-    public function address()
-    {
-        return $this->belongsTo(Address::class);
     }
 
     // relasi ke item-item pesanan
@@ -78,6 +90,9 @@ class Order extends Model
     // total hitung otomatis
     public function getComputedTotalAttribute(): float
     {
-        return (float) ($this->grand_total ?: ($this->total_amount + $this->shipping_cost));
+        $subtotal = (float) ($this->subtotal_amount ?? 0);
+        $shipping = (float) ($this->shipping_cost ?? 0);
+
+        return (float) ($this->total_amount ?: ($subtotal + $shipping));
     }
 }

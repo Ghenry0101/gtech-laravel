@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('order_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
+            $table->ulid('order_id');
+            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
             $table->enum('status', ['pending','paid','packed','shipped','delivered','completed','canceled']);
             $table->text('note')->nullable();
             $table->timestamp('changed_at')->nullable();

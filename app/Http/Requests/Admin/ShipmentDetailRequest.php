@@ -17,6 +17,7 @@ class ShipmentDetailRequest extends FormRequest
             'courier_name' => ['nullable', 'string', 'max:120'],
             'courier_service' => ['nullable', 'string', 'max:120'],
             'tracking_id' => ['nullable', 'string', 'max:160'],
+            'waybill_id' => ['nullable', 'string', 'max:160'],
             'estimation_days' => ['nullable', 'integer', 'min:1', 'max:60'],
             'shipping_cost' => ['nullable', 'numeric', 'min:0'],
         ];

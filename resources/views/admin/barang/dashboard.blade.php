@@ -4,12 +4,20 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Dashboard Admin Barang') }}
             </h2>
-            <a href="{{ route('admin.barang.products.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
-                    <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                {{ __('Kelola Produk') }}
-            </a>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('admin.barang.brands.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+                        <path d="M7 7h10M7 12h6M7 17h8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    {{ __('Kelola Brand') }}
+                </a>
+                <a href="{{ route('admin.barang.products.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    {{ __('Kelola Produk') }}
+                </a>
+            </div>
         </div>
     </x-slot>
 
