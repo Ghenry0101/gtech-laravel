@@ -74,6 +74,7 @@
                                             <div>
                                                 <p class="font-semibold text-slate-900">{{ $product->name }}</p>
                                                 <p class="text-xs uppercase tracking-wide text-slate-400">{{ $product->slug }}</p>
+                                                <p class="text-xs font-mono text-slate-600">{{ __('SKU') }}: {{ $product->sku }}</p>
                                             </div>
                                         </div>
                                     </td>

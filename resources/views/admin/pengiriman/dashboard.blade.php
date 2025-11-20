@@ -183,6 +183,16 @@
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-semibold text-slate-900">{{ $order->order_number }}</p>
                                     <p class="text-xs text-slate-500">{{ __('Dibuat: :date', ['date' => optional($order->order_time ?? $order->created_at)->format('d M Y H:i')]) }}</p>
+                                    @if ($order->items && $order->items->isNotEmpty())
+                                        @php
+                                            $skuSummary = $order->items->map(function ($item) {
+                                                $sku = $item->product?->sku ?? $item->product_name ?? '-';
+
+                                                return $sku.' x'.$item->quantity;
+                                            })->implode(' | ');
+                                        @endphp
+                                        <p class="text-xs text-slate-500">{{ __('SKU') }}: <span class="font-mono text-slate-700">{{ $skuSummary }}</span></p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <p class="font-semibold">{{ $order->user?->name ?? __('Tanpa nama') }}</p>

@@ -31,7 +31,8 @@ class AdminShippingController extends Controller
         $baseQuery = Order::query()
             ->with([
                 'user:id,name,email,phone',
-                'items:id,order_id,quantity',
+                'items:id,order_id,product_id,product_name,quantity',
+                'items.product:id,sku',
                 'shipment:id,order_id,courier_name,courier_service,status,tracking_id,waybill_id,shipping_cost,shipped_at,delivered_at,updated_at',
                 'payment:id,order_id,payment_status,gross_amount,paid_at',
             ])
@@ -153,13 +154,48 @@ class AdminShippingController extends Controller
         abort_unless($order->shipment, 404);
 
         $payload = $request->validated();
-        foreach (['tracking_id', 'waybill_id'] as $key) {
-            if (array_key_exists($key, $payload) && $payload[$key] === '') {
-                $payload[$key] = null;
-            }
+        $status = $payload['status'] ?? null;
+        $trackingId = $payload['tracking_id'] ?? null;
+        $waybillId = $payload['waybill_id'] ?? null;
+        $currentStatus = $order->shipment->status;
+        $shouldUpdateStatus = $status && $status !== $currentStatus;
+
+        $shipmentPayload = [
+            'courier_name' => $payload['courier_name'] ?? null,
+            'courier_service' => $payload['courier_service'] ?? null,
+            'estimation_days' => $payload['estimation_days'] ?? null,
+            'shipping_cost' => $payload['shipping_cost'] ?? null,
+        ];
+
+        if ($trackingId !== null) {
+            $shipmentPayload['tracking_id'] = $trackingId;
+        }
+        
+        if ($waybillId !== null) {
+            $shipmentPayload['waybill_id'] = $waybillId;
         }
 
-        $order->shipment->fill($payload)->save();
+        DB::transaction(function () use ($order, $shipmentPayload, $shouldUpdateStatus, $status, $trackingId, $waybillId): void {
+            $order->shipment->fill($shipmentPayload)->save();
+
+            if ($shouldUpdateStatus) {
+                [$statusUpdates, $orderStatus] = $this->prepareShipmentStatusUpdates($order, $status, $trackingId, $waybillId);
+
+                $order->shipment->forceFill($statusUpdates)->save();
+                $order->forceFill([
+                    'order_status' => $orderStatus,
+                ])->save();
+            }
+        });
+
+        $order->refresh();
+        if (
+            $shouldUpdateStatus
+            && $status === 'shipped'
+            && ($order->shipment?->tracking_id === null || $order->shipment?->waybill_id === null)
+        ) {
+            ShipmentDispatcher::make()->dispatch($order);
+        }
 
         return back()
             ->with('status', 'shipment-updated')
@@ -175,38 +211,15 @@ class AdminShippingController extends Controller
 
         $data = $request->validated();
 
-        DB::transaction(function () use ($order, $data): void {
-            $shipment = $order->shipment;
-            $status = $data['status'];
-            $trackingId = $data['tracking_id'] ?? null;
-             $waybillId = $data['waybill_id'] ?? null;
+        [$statusUpdates, $orderStatus] = $this->prepareShipmentStatusUpdates(
+            $order,
+            $data['status'],
+            $data['tracking_id'] ?? null,
+            $data['waybill_id'] ?? null,
+        );
 
-            $shipmentUpdates = [
-                'status' => $status,
-            ];
-
-            if ($trackingId) {
-                $shipmentUpdates['tracking_id'] = $trackingId;
-            }
-
-            if ($waybillId) {
-                $shipmentUpdates['waybill_id'] = $waybillId;
-            }
-
-            if ($status === 'shipped') {
-                $shipmentUpdates['shipped_at'] = $shipment->shipped_at ?? now();
-                $shipmentUpdates['delivered_at'] = null;
-                $orderStatus = 'shipped';
-            } elseif ($status === 'delivered') {
-                $shipmentUpdates['delivered_at'] = now();
-                $orderStatus = 'completed';
-            } else {
-                $shipmentUpdates['shipped_at'] = null;
-                $shipmentUpdates['delivered_at'] = null;
-                $orderStatus = 'processing';
-            }
-
-            $shipment->forceFill($shipmentUpdates)->save();
+        DB::transaction(function () use ($order, $statusUpdates, $orderStatus): void {
+            $order->shipment->forceFill($statusUpdates)->save();
             $order->forceFill([
                 'order_status' => $orderStatus,
             ])->save();
@@ -223,5 +236,39 @@ class AdminShippingController extends Controller
         return back()
             ->with('status', 'status-updated')
             ->with('status_message', __('Status pengiriman berhasil diperbarui.'));
+    }
+
+    /**
+     * Susun perubahan status pengiriman beserta efek ke pesanan.
+     */
+    private function prepareShipmentStatusUpdates(Order $order, string $status, ?string $trackingId, ?string $waybillId): array
+    {
+        $shipment = $order->shipment;
+        $shipmentUpdates = [
+            'status' => $status,
+        ];
+
+        if ($trackingId) {
+            $shipmentUpdates['tracking_id'] = $trackingId;
+        }
+
+        if ($waybillId) {
+            $shipmentUpdates['waybill_id'] = $waybillId;
+        }
+
+        if ($status === 'shipped') {
+            $shipmentUpdates['shipped_at'] = $shipment?->shipped_at ?? now();
+            $shipmentUpdates['delivered_at'] = null;
+            $orderStatus = 'shipped';
+        } elseif ($status === 'delivered') {
+            $shipmentUpdates['delivered_at'] = $shipment?->delivered_at ?? now();
+            $orderStatus = 'completed';
+        } else {
+            $shipmentUpdates['shipped_at'] = null;
+            $shipmentUpdates['delivered_at'] = null;
+            $orderStatus = 'processing';
+        }
+
+        return [$shipmentUpdates, $orderStatus];
     }
 }
