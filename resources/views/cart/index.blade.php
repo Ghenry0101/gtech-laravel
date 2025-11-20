@@ -23,7 +23,7 @@
     @endphp
 
     <div class="py-10">
-        <div class="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-8xl space-y-6 px-4 sm:px-6 lg:px-8">
             @if ($errors->has('cart'))
                 <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-sm">
                     {{ $errors->first('cart') }}

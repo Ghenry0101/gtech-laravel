@@ -42,7 +42,6 @@ class OrderController extends Controller
             'items.review.images',
             'shipment',
             'payment',
-            'address',
             'complaints',
         ]);
 

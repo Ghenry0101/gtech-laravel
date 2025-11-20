@@ -5,7 +5,7 @@
 @if ($items->isEmpty())
     <div class="text-center text-sm text-gray-400 mt-4">Belum ada produk.</div>
 @else
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl">
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         @foreach ($items as $p)
             @php
                 $id = \Illuminate\Support\Arr::get($p, 'id');

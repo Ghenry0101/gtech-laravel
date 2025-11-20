@@ -164,7 +164,7 @@ class CheckoutController extends Controller
                     'subtotal_amount' => $itemsTotal,
                     'shipping_cost' => $shippingCost,
                     'total_amount' => $grandTotal,
-                    'order_status' => 'pending',
+                    'order_status' => 'processing',
                     'notes' => $request->validated('notes'),
                     'payment_method' => $paymentMethodKey,
                     'order_time' => now(),

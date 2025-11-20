@@ -94,16 +94,8 @@
                                     <button
                                         type="submit"
                                         name="action"
-                                        value="buy"
-                                        class="inline-flex w-full items-center justify-center rounded-sm bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-100"
-                                    >
-                                        {{ __('Beli Sekarang') }}
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        name="action"
                                         value="add"
-                                        class="inline-flex w-full items-center justify-center rounded-sm border border-white/40 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                                        class="inline-flex w-full items-center justify-center rounded-sm border border-white/40 px-4 py-2.5 text-sm font-semibold text-black bg-white hover:bg-white/70"
                                     >
                                         {{ __('Tambah ke Keranjang') }}
                                     </button>
@@ -231,22 +223,9 @@
                     <h3 class="text-lg font-semibold text-slate-900">{{ __('Produk Terkait') }}</h3>
                 </div>
                 @include('components.product-grid', [
-                    'items' => $relatedProducts->map(fn ($item) => [
-                        'title' => $item->name,
-                        'slug' => $item->slug,
-                        'status' => $item->stock > 0 ? 'available' : 'unavailable',
-                        'price' => $item->effective_price,
-                        'original_price' => $item->price,
-                        'planned_price' => $item->discount_price,
-                        'has_discount' => $item->hasDiscountConfigured(),
-                        'is_discount_active' => $item->hasDiscountActive(),
-                        'discount_percent' => $item->discount_percent,
-                        'discount_start' => optional($item->discount_start)?->format('d M Y H:i'),
-                        'discount_end' => optional($item->discount_end)?->format('d M Y H:i'),
-                        'image_path' => $item->product_image ? 'storage/' . $item->product_image : null,
-                        'stock' => $item->stock,
-                    ]),
+                    'items' => $relatedProducts,
                 ])
+
             </section>
         </div>
     </div>

@@ -26,11 +26,7 @@
 
                         <button type="submit"
                             class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition hover:text-gray-900">
-                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M9 16.17l7.5-6.5c.8-.8.8-2.1 0-2.9-.8-.8-2.1-.8-2.9 0L9 16.17zm4.97-9.09c.4-.4 1.02-.4 1.42 0l6.97 6.03c.4.4.4 1.02 0 1.42-.4.4-1.02.4-1.42 0L13.03 5.97c-.4-.4-1.02-.4-1.42 0z"
-                                    clip-rule="evenodd" />
-                            </svg>
+                            <x-lucide-search class="w-5 h-5" />
                         </button>
                     </form>
                 </div>
