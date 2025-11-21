@@ -21,6 +21,26 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Gmail Password Reset Setup
+
+Forgot-password links are delivered through Gmail now. Follow the steps below to make sure the notification arrives in your inbox:
+
+1. Enable 2-Step Verification on the Gmail account you want to send from, then create an App Password for "Mail". Copy the 16-character password that Google gives you.
+2. Open `.env` and update the mail block so it points to Gmail's SMTP servers:
+   ```
+   MAIL_MAILER=smtp
+   MAIL_SCHEME=smtp
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your_gtech_gmail@gmail.com
+   MAIL_PASSWORD=your_app_password
+   MAIL_FROM_ADDRESS="${MAIL_USERNAME}"
+   MAIL_FROM_NAME="${APP_NAME} Support"
+   ```
+   Replace the username and password placeholders with the Gmail address and the App Password from step 1. Gmail uses STARTTLS on port 587, so keep `MAIL_SCHEME` as `smtp` (setting it to `tls` will trigger an unsupported scheme error).
+3. Run `php artisan config:clear` (or restart the queue/worker) so Laravel picks up the new environment values.
+4. Open `/forgot-password`, submit a registered email address, and check the inbox (and spam folder) for the reset link sent from Gmail.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

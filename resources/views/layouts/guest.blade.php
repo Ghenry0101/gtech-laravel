@@ -7,23 +7,37 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
+   
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Russo+One&display=swap" rel="stylesheet">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
+      
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
-            </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {{ $slot }}
+        <style>
+            :root {
+                font-family: 'Montserrat', 'Figtree', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            }
+
+            .brand-font {
+                font-family: 'Russo One', 'Montserrat', 'Figtree', system-ui, sans-serif;
+            }
+        </style>
+    </head>
+    <body class="antialiased bg-neutral-100 text-gray-900">
+        <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-100">
+            <div class="w-full max-w-md bg-white rounded-[26px] shadow-[0_15px_35px_rgba(0,0,0,0.12)] border border-neutral-100">
+                <div class="text-center border-b border-gray-200 px-10 pt-10 pb-8">
+                    <a href="/" class="inline-block">
+                        <span class="brand-font text-3xl  text-gray-900">G-TECH</span>
+                    </a>
+                </div>
+                <div class="px-10 py-10">
+                    {{ $slot }}
+                </div>
             </div>
         </div>
     </body>
