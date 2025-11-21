@@ -82,7 +82,9 @@ class Product extends Model
                 $product->slug = static::generateUniqueSlug($product->name, $product->getKey());
             }
 
-            if (! $product->sku) {
+            $shouldRegenerateSku = $product->isDirty(['name', 'brand_id', 'category_id']) || ! $product->sku;
+
+            if ($shouldRegenerateSku) {
                 $product->sku = SkuGenerator::make()->generateUsingContext(
                     productName: $product->name,
                     categoryName: $product->categoryNameForSku(),
@@ -151,8 +153,8 @@ class Product extends Model
 
     protected function categoryNameForSku(): ?string
     {
-        if ($this->relationLoaded('category')) {
-            return $this->category?->name;
+        if ($this->relationLoaded('category') && $this->category && (string) $this->category->getKey() === (string) $this->category_id) {
+            return $this->category->name;
         }
 
         if (! $this->category_id) {
@@ -166,8 +168,8 @@ class Product extends Model
 
     protected function brandNameForSku(): ?string
     {
-        if ($this->relationLoaded('brand')) {
-            return $this->brand?->name;
+        if ($this->relationLoaded('brand') && $this->brand && (string) $this->brand->getKey() === (string) $this->brand_id) {
+            return $this->brand->name;
         }
 
         if (! $this->brand_id) {

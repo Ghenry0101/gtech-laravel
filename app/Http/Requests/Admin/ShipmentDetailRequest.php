@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ShipmentDetailRequest extends FormRequest
 {
@@ -20,6 +21,10 @@ class ShipmentDetailRequest extends FormRequest
             'waybill_id' => ['nullable', 'string', 'max:160'],
             'estimation_days' => ['nullable', 'integer', 'min:1', 'max:60'],
             'shipping_cost' => ['nullable', 'numeric', 'min:0'],
+            'status' => [
+                'nullable',
+                Rule::in(['processing', 'shipped', 'delivered']),
+            ],
         ];
     }
 

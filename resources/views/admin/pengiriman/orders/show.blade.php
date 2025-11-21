@@ -155,15 +155,30 @@
                             </div>
 
                             <div>
+                                <label class="text-xs uppercase text-slate-400" for="status">{{ __('Status Pengiriman') }}</label>
+                                <select id="status" name="status" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0">
+                                    <option value="processing" @selected(old('status', $order->shipment?->status) === 'processing')>{{ __('Sedang diproses gudang') }}</option>
+                                    <option value="shipped" @selected(old('status', $order->shipment?->status) === 'shipped')>{{ __('Sedang dikirim / courier pick up') }}</option>
+                                    <option value="delivered" @selected(old('status', $order->shipment?->status) === 'delivered')>{{ __('Sudah diterima pelanggan') }}</option>
+                                </select>
+                                <p class="mt-1 text-xs text-slate-500">{{ __('Perubahan status akan ikut mengubah status pesanan pelanggan.') }}</p>
+                                @error('status')
+                                    <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
                                 <label class="text-xs uppercase text-slate-400" for="tracking_id">{{ __('Nomor Resi') }}</label>
-                                <input type="text" name="tracking_id" id="tracking_id" value="{{ old('tracking_id', $order->shipment?->tracking_id) }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                <input type="text" name="tracking_id" id="tracking_id" value="{{ old('tracking_id') }}" placeholder="{{ $order->shipment?->tracking_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                <p class="mt-1 text-xs text-slate-400">{{ __('Kosongkan untuk mempertahankan nilai sebelumnya.') }}</p>
                                 @error('tracking_id')
                                     <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
                                 <label class="text-xs uppercase text-slate-400" for="waybill_id">{{ __('Waybill Biteship (opsional)') }}</label>
-                                <input type="text" name="waybill_id" id="waybill_id" value="{{ old('waybill_id', $order->shipment?->waybill_id) }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                <input type="text" name="waybill_id" id="waybill_id" value="{{ old('waybill_id') }}" placeholder="{{ $order->shipment?->waybill_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
+                                <p class="mt-1 text-xs text-slate-400">{{ __('Biarkan kosong jika tidak ada pembaruan waybill.') }}</p>
                                 @error('waybill_id')
                                     <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
                                 @enderror
@@ -190,44 +205,6 @@
                                 {{ __('Simpan Detail') }}
                             </button>
                         </form>
-                    </section>
-
-                    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <p class="text-sm font-semibold text-slate-900">{{ __('Perbarui Status Pengiriman') }}</p>
-                        <form method="POST" action="{{ route('admin.shipping.orders.status.update', $order) }}" class="mt-4 space-y-4">
-                            @csrf
-                            @method('PATCH')
-                            <div>
-                                <label class="text-xs uppercase text-slate-400" for="status">{{ __('Status') }}</label>
-                                <select id="status" name="status" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0">
-                                    <option value="processing" @selected(old('status', $order->shipment?->status) === 'processing')>{{ __('Sedang diproses gudang') }}</option>
-                                    <option value="shipped" @selected(old('status', $order->shipment?->status) === 'shipped')>{{ __('Sedang dikirim / courier pick up') }}</option>
-                                    <option value="delivered" @selected(old('status', $order->shipment?->status) === 'delivered')>{{ __('Sudah diterima pelanggan') }}</option>
-                                </select>
-                                @error('status')
-                                    <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="text-xs uppercase text-slate-400" for="status_tracking_id">{{ __('Nomor Resi (opsional)') }}</label>
-                                <input type="text" name="tracking_id" id="status_tracking_id" value="{{ old('tracking_id') }}" placeholder="{{ $order->shipment?->tracking_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
-                                <p class="mt-1 text-xs text-slate-400">{{ __('Kosongkan untuk mempertahankan nilai sebelumnya.') }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs uppercase text-slate-400" for="status_waybill_id">{{ __('Waybill (opsional)') }}</label>
-                                <input type="text" name="waybill_id" id="status_waybill_id" value="{{ old('waybill_id') }}" placeholder="{{ $order->shipment?->waybill_id }}" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" />
-                                <p class="mt-1 text-xs text-slate-400">{{ __('Biarkan kosong jika tidak ada pembaruan waybill.') }}</p>
-                                @error('waybill_id')
-                                    <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <button type="submit" class="w-full rounded-full bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600">
-                                {{ __('Perbarui Status') }}
-                            </button>
-                        </form>
-                        <p class="mt-3 text-xs text-slate-500">
-                            {{ __('Status \"Sudah diterima\" akan otomatis mengubah pesanan menjadi selesai sehingga pelanggan bisa mengulas.') }}
-                        </p>
                     </section>
                 </aside>
             </div>
