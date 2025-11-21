@@ -17,6 +17,7 @@ class AdminComplaintController extends Controller
             ->with([
                 'order:id,order_number,order_status',
                 'user:id,name,email,phone',
+                'images:id,complaint_id,path,position',
             ])
             ->latest()
             ->paginate(12);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\File;
 
 class ComplaintController extends Controller
 {
@@ -16,14 +17,27 @@ class ComplaintController extends Controller
         $data = $request->validate([
             'reason' => ['required', 'string', 'max:150'],
             'issue_detail' => ['required', 'string', 'min:10'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*' => [File::image()->max(10240)],
         ]);
 
-        $order->complaints()->create([
+        $complaint = $order->complaints()->create([
             'user_id' => $request->user()->id,
             'reason' => $data['reason'],
             'issue_detail' => $data['issue_detail'],
             'status' => 'pending',
         ]);
+
+        $files = $request->file('images', []);
+
+        foreach ($files as $index => $uploadedFile) {
+            $path = $uploadedFile->store('complaints', 'public');
+
+            $complaint->images()->create([
+                'path' => $path,
+                'position' => $index,
+            ]);
+        }
 
         return back()
             ->with('status', 'complaint-submitted')

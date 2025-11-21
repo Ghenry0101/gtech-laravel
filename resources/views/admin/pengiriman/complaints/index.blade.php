@@ -49,6 +49,17 @@
                                     <p class="font-semibold text-slate-900">{{ $complaint->reason }}</p>
                                     <p class="text-xs text-slate-500">{{ optional($complaint->created_at)->format('d M Y H:i') }}</p>
                                     <p class="mt-3 whitespace-pre-line text-sm text-slate-600">{{ $complaint->issue_detail }}</p>
+                                    @if ($complaint->images->isNotEmpty())
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            @foreach ($complaint->images as $image)
+                                                <img
+                                                    src="{{ asset('storage/'.$image->path) }}"
+                                                    alt="{{ __('Foto bukti komplain') }}"
+                                                    class="h-10 w-10 rounded-md object-cover"
+                                                >
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 align-top">
                                     <p class="font-semibold text-slate-900">{{ $complaint->order->order_number ?? '-' }}</p>

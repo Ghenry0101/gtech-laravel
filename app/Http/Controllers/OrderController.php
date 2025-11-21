@@ -40,9 +40,9 @@ class OrderController extends Controller
             'items.product',
             'items.review',
             'items.review.images',
+            'complaints.images',
             'shipment',
             'payment',
-            'complaints',
         ]);
 
         $statusMeta = $this->statusMeta();

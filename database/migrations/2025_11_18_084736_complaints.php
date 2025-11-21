@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
-            $table->ulid('order_id');
-            $table->ulid('user_id');
+            $table->ulid('order_id')->nullable(true);
+            $table->ulid('user_id')->nullable(true);
             $table->string('reason');
             $table->text('issue_detail');
             $table->string('status')->default('pending');
