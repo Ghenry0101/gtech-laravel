@@ -58,7 +58,7 @@
             <div class="space-y-4">
                 <h1 class="text-3xl md:text-4xl tracking-wide font-extrabold">Easy To Use</h1>
                 <p class="text-sm text-gray-600 max-w-md">
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                    “Platform yang mudah untuk membeli komponen PC dan PC rakitan siap pakai untuk semua kebutuhan Anda.”
                 </p>
                 
             </div>
