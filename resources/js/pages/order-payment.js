@@ -1,54 +1,61 @@
 const paymentSection = document.querySelector('[data-order-payment]');
 
 if (paymentSection) {
-    const snapToken = paymentSection.dataset.snapToken;
-    const redirectUrl = paymentSection.dataset.redirect || window.location.href;
-    const triggerButton = paymentSection.querySelector('[data-order-pay-trigger]');
-    const errorBox = paymentSection.querySelector('[data-order-payment-error]');
+    const feedbackBox = paymentSection.querySelector('[data-order-payment-feedback]');
 
-    const showError = (message) => {
-        if (!errorBox) {
+    const showFeedback = (message, isError = false) => {
+        if (!feedbackBox) {
             return;
         }
 
         if (!message) {
-            errorBox.classList.add('hidden');
-            errorBox.textContent = '';
+            feedbackBox.classList.add('hidden');
+            feedbackBox.textContent = '';
             return;
         }
 
-        errorBox.textContent = message;
-        errorBox.classList.remove('hidden');
+        feedbackBox.textContent = message;
+        feedbackBox.classList.toggle('text-emerald-700', !isError);
+        feedbackBox.classList.toggle('text-rose-700', isError);
+        feedbackBox.classList.remove('hidden');
     };
 
-    const redirect = () => {
-        window.location.href = redirectUrl;
+    const handleCopy = async (value) => {
+        if (!value) {
+            showFeedback('Tidak ada data yang bisa disalin.', true);
+            return;
+        }
+
+        if (!navigator.clipboard) {
+            showFeedback('Browser tidak mendukung salin otomatis.', true);
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(value);
+            showFeedback('Berhasil disalin ke clipboard.');
+        } catch (error) {
+            showFeedback('Gagal menyalin, coba manual.', true);
+        }
     };
 
-    const triggerSnapPayment = () => {
-        showError('');
+    paymentSection.querySelectorAll('[data-copy-value]').forEach((button) => {
+        const value = button.dataset.copyValue;
 
-        if (!snapToken) {
-            showError('Token pembayaran tidak tersedia. Hubungi tim kami untuk bantuan.');
-            return;
-        }
+        button.addEventListener('click', () => handleCopy(value));
+    });
 
-        if (!window.snap) {
-            showError('Script Midtrans belum termuat. Tunggu sebentar lalu coba lagi.');
-            return;
-        }
+    paymentSection.querySelectorAll('[data-open-payment-link]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const url = button.dataset.openPaymentLink;
 
-        window.snap.pay(snapToken, {
-            onSuccess: redirect,
-            onPending: redirect,
-            onError: (error) => {
-                showError(error?.message || 'Pembayaran gagal. Silakan coba lagi.');
-            },
-            onClose: () => {
-                showError('Jendela pembayaran ditutup sebelum selesai.');
-            },
+            if (!url) {
+                showFeedback('Link pembayaran belum tersedia.', true);
+                return;
+            }
+
+            window.open(url, '_blank', 'noopener');
+            showFeedback('Link pembayaran dibuka di tab baru.');
         });
-    };
-
-    triggerButton?.addEventListener('click', triggerSnapPayment);
+    });
 }

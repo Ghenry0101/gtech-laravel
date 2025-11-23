@@ -16,6 +16,7 @@ use App\Services\Shipping\ShipmentDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -58,8 +59,6 @@ class CheckoutController extends Controller
             'defaultAddress' => $defaultAddress,
             'shippingOptions' => $shippingOptions,
             'paymentMethods' => config('midtrans.payment_methods', []),
-            'midtransClientKey' => MidtransService::make()->getClientKey(),
-            'snapScriptUrl' => MidtransService::make()->snapScriptUrl(),
         ]);
     }
 
@@ -111,6 +110,7 @@ class CheckoutController extends Controller
 
         $paymentMethodKey = $request->validated('payment_method');
         $paymentMethod = $midtrans->getPaymentMethod($paymentMethodKey);
+        $paymentBank = $request->validated('payment_bank');
 
         if (! $paymentMethod) {
             return response()->json([
@@ -150,7 +150,8 @@ class CheckoutController extends Controller
                 $selectedRate,
                 $request,
                 $midtrans,
-                $paymentMethodKey
+                $paymentMethodKey,
+                $paymentBank
             ) {
                 $itemsTotal = $cartItems->sum('subtotal');
                 $shippingCost = $selectedRate['cost'];
@@ -222,35 +223,56 @@ class CheckoutController extends Controller
                 $itemDetails = $this->buildItemDetails($order);
                 $customerDetails = $this->buildCustomerDetails($user->name, $user->email, $address);
 
-                $midtrans->createSnapTransaction(
+                $midtrans->createCoreCharge(
                     order: $order->fresh('items'),
                     payment: $payment,
                     itemDetails: $itemDetails,
                     customerDetails: $customerDetails,
                     paymentMethodKey: $paymentMethodKey,
+                    bank: $paymentBank,
                 );
 
                 return [$order, $payment->fresh(), $shipment];
             });
         } catch (\Throwable $throwable) {
-            Log::error('Checkout failed', [
+            $context = [
                 'user_id' => $user->id,
                 'message' => $throwable->getMessage(),
-            ]);
+            ];
+            $userMessage = __('Gagal membuat pesanan: :msg', ['msg' => $throwable->getMessage()]);
+
+            if ($throwable instanceof RequestException && $throwable->response) {
+                $body = $throwable->response->json();
+                $context['midtrans_status'] = $throwable->response->status();
+                $context['midtrans_response'] = $body;
+
+                $validationMessages = array_filter((array) ($body['validation_messages'] ?? []));
+                $statusMessage = $body['status_message'] ?? null;
+
+                if (! empty($validationMessages)) {
+                    $userMessage = __('Gagal membuat pesanan: :msg', ['msg' => implode('; ', $validationMessages)]);
+                } elseif ($statusMessage) {
+                    $userMessage = __('Gagal membuat pesanan: :msg', ['msg' => $statusMessage]);
+                }
+            }
+
+            Log::error('Checkout failed', $context);
 
             return response()->json([
-                'message' => __('Gagal membuat pesanan: :msg', ['msg' => $throwable->getMessage()]),
+                'message' => $userMessage,
             ], 422);
         }
 
         return response()->json([
             'message' => __('Pesanan berhasil dibuat. Lanjutkan pembayaran.'),
             'order_number' => $order->order_number,
-            'snap_token' => $payment->snap_token,
-            'redirect_url' => $payment->snap_redirect_url,
-            'shipment' => [
-                'courier' => $shipment->courier_name,
-                'service' => $shipment->courier_service,
+            'payment' => [
+                'type' => $payment->payment_type,
+                'status' => $payment->payment_status,
+                'bank' => $payment->bank,
+                'va_number' => $payment->va_number,
+                'payment_link' => $payment->payment_link,
+                'qr_string' => $payment->qr_string,
             ],
         ]);
     }
@@ -277,22 +299,9 @@ class CheckoutController extends Controller
             return response()->json(['message' => 'Order not found.'], 404);
         }
 
-        DB::transaction(function () use ($order, $payload) {
-            $payment = $order->payment;
-
-            if ($payment) {
-                $payment->forceFill([
-                    'transaction_id' => $payload['transaction_id'] ?? $payment->transaction_id,
-                    'payment_type' => $payload['payment_type'] ?? $payment->payment_type,
-                    'bank' => data_get($payload, 'va_numbers.0.bank', $payment->bank),
-                    'va_number' => data_get($payload, 'va_numbers.0.va_number', $payment->va_number),
-                    'payment_status' => $payload['transaction_status'] ?? $payment->payment_status,
-                    'fraud_status' => $payload['fraud_status'] ?? $payment->fraud_status,
-                    'gross_amount' => $payload['gross_amount'] ?? $payment->gross_amount,
-                    'paid_at' => in_array($payload['transaction_status'] ?? null, ['capture', 'settlement'], true)
-                        ? now()
-                        : $payment->paid_at,
-                ])->save();
+        DB::transaction(function () use ($order, $payload, $midtrans) {
+            if ($order->payment) {
+                $midtrans->updatePaymentFromResponse($order->payment, $payload, $order);
             }
 
             $this->updateOrderStatusFromNotification($order, $payload);

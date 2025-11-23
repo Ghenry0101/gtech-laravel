@@ -26,12 +26,17 @@ class Payment extends Model
         'fraud_status',
         'snap_token',
         'snap_redirect_url',
+        'payload',
+        'qr_string',
+        'payment_link',
+        'payment_code',
         'paid_at',
     ];
 
     protected $casts = [
         'gross_amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'payload' => 'array',
     ];
 
     public function order()

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Services\Midtrans\MidtransService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +48,6 @@ class OrderController extends Controller
         ]);
 
         $statusMeta = $this->statusMeta();
-        $midtrans = MidtransService::make();
 
         return view('orders.show', [
             'order' => $order,
@@ -57,8 +55,6 @@ class OrderController extends Controller
             'currentStatus' => $statusMeta[$order->order_status] ?? null,
             'paymentMethods' => config('midtrans.payment_methods', []),
             'cameFromCheckout' => $request->boolean('from_checkout'),
-            'midtransClientKey' => $midtrans->getClientKey(),
-            'snapScriptUrl' => $midtrans->snapScriptUrl(),
             'paymentExpiresAt' => $this->paymentExpiresAt($order),
         ]);
     }

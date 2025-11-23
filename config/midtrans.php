@@ -18,6 +18,8 @@ return [
             'description' => 'BCA, BNI, BRI, Permata',
             'enabled_payments' => ['bank_transfer'],
             'icon' => 'VA',
+            'bank' => env('MIDTRANS_DEFAULT_BANK', 'bca'),
+            'banks' => ['bca', 'bni', 'bri', 'permata'],
         ],
         'qris' => [
             'label' => 'QRIS (Semua Bank & E-Wallet)',
@@ -30,6 +32,7 @@ return [
             'description' => 'GoPay & ShopeePay',
             'enabled_payments' => ['gopay', 'shopeepay'],
             'icon' => 'EW',
+            'channel' => env('MIDTRANS_EWALLET_CHANNEL', 'gopay'),
         ],
     ],
 ];

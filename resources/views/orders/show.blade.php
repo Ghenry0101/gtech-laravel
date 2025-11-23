@@ -71,8 +71,6 @@
                 <div
                     class="mb-6 rounded-md border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-800"
                     data-order-payment
-                    data-snap-token="{{ $order->payment?->snap_token }}"
-                    data-redirect="{{ route('orders.show', $order) }}"
                 >
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
@@ -84,19 +82,82 @@
                                 @endif
                             </p>
                         </div>
-                        @if ($order->payment?->snap_token && $midtransClientKey && $snapScriptUrl)
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-md bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
-                                data-order-pay-trigger
-                            >
-                                {{ __('Bayar Sekarang') }}
-                            </button>
-                        @else
-                            <p class="mt-2 text-xs text-rose-600 sm:mt-0">{{ __('Token pembayaran belum tersedia. Hubungi CS untuk bantuan.') }}</p>
-                        @endif
                     </div>
-                    <p class="mt-2 hidden text-xs text-rose-700" data-order-payment-error></p>
+
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <p class="text-xs uppercase text-amber-700">{{ __('Instruksi Pembayaran') }}</p>
+                            @php $payment = $order->payment; @endphp
+                            @if ($payment?->payment_type === 'bank_transfer')
+                                <p class="text-sm text-slate-800">{{ __('Transfer ke Virtual Account berikut:') }}</p>
+                                <div class="mt-1 flex flex-wrap items-center gap-3">
+                                    <span class="rounded bg-white px-3 py-2 text-sm font-semibold text-slate-900">
+                                        {{ strtoupper($payment->bank ?? 'VA') }} - {{ $payment->va_number ?? __('Belum tersedia') }}
+                                    </span>
+                                    @if ($payment->va_number)
+                                        <button type="button" class="text-xs font-semibold text-amber-700 hover:text-amber-800" data-copy-value="{{ $payment->va_number }}">
+                                            {{ __('Salin VA') }}
+                                        </button>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-slate-600">{{ __('Nominal yang dibayar: :amount', ['amount' => $formatCurrency($order->total_amount)]) }}</p>
+                            @elseif ($payment?->payment_type === 'qris')
+                                <p class="text-sm text-slate-800">{{ __('Scan QRIS lewat mobile banking atau e-wallet Anda.') }}</p>
+                                <div class="mt-2 flex flex-wrap items-center gap-3">
+                                    @if ($payment->payment_link)
+                                        <button type="button" class="inline-flex items-center rounded-md bg-amber-500 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-600" data-open-payment-link="{{ $payment->payment_link }}">
+                                            {{ __('Buka QR') }}
+                                        </button>
+                                    @endif
+                                    @if ($payment->qr_string)
+                                        <button type="button" class="text-xs font-semibold text-amber-700 hover:text-amber-800" data-copy-value="{{ $payment->qr_string }}">
+                                            {{ __('Salin QR String') }}
+                                        </button>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-slate-600">{{ __('Nominal: :amount', ['amount' => $formatCurrency($order->total_amount)]) }}</p>
+                            @elseif (in_array($payment?->payment_type, ['gopay', 'shopeepay'], true))
+                                <p class="text-sm text-slate-800">{{ __('Selesaikan pembayaran di aplikasi :app.', ['app' => strtoupper($payment->payment_type ?? 'E-Wallet')]) }}</p>
+                                @if ($payment?->payment_link)
+                                    <button type="button" class="mt-2 inline-flex items-center rounded-md bg-amber-500 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-600" data-open-payment-link="{{ $payment->payment_link }}">
+                                        {{ __('Buka Link Pembayaran') }}
+                                    </button>
+                                @endif
+                                <p class="text-xs text-slate-600">{{ __('Nominal: :amount', ['amount' => $formatCurrency($order->total_amount)]) }}</p>
+                            @else
+                                <p class="text-sm text-slate-800">{{ __('Instruksi pembayaran belum tersedia. Silakan hubungi tim kami.') }}</p>
+                            @endif
+                        </div>
+                        <div class="rounded-md border border-amber-100 bg-white/60 p-4 text-xs text-slate-700">
+                            <p class="font-semibold text-slate-900">{{ __('Detail Pembayaran') }}</p>
+                            <dl class="mt-2 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <dt>{{ __('Metode') }}</dt>
+                                    <dd class="font-semibold text-slate-900">
+                                        {{ $paymentMethods[$order->payment_method]['label'] ?? \Illuminate\Support\Str::headline($order->payment_method) }}
+                                    </dd>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <dt>{{ __('Status') }}</dt>
+                                    <dd class="font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($order->payment?->payment_status ?? 'pending') }}</dd>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <dt>{{ __('Total Bayar') }}</dt>
+                                    <dd class="font-semibold text-slate-900">{{ $formatCurrency($order->total_amount) }}</dd>
+                                </div>
+                                @if ($expiryLabel)
+                                    <div class="flex items-center justify-between">
+                                        <dt>{{ __('Batas Waktu') }}</dt>
+                                        <dd class="font-semibold text-slate-900">{{ $expiryLabel }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                            <p class="mt-2 text-[11px] text-amber-700">
+                                {{ __('Status akan diperbarui otomatis setelah Midtrans mengonfirmasi pembayaran.') }}
+                            </p>
+                        </div>
+                    </div>
+                    <p class="mt-3 hidden text-xs font-semibold text-emerald-700" data-order-payment-feedback></p>
                 </div>
             @endif
 
@@ -262,7 +323,24 @@
                             @if ($order->payment?->va_number)
                                 <div>
                                     <dt class="text-xs uppercase text-slate-400">{{ __('Virtual Account') }}</dt>
-                                    <dd class="text-sm font-semibold text-slate-900">{{ strtoupper($order->payment->bank) }} - {{ $order->payment->va_number }}</dd>
+                                    <dd class="text-sm font-semibold text-slate-900">{{ strtoupper($order->payment->bank ?? '') }} - {{ $order->payment->va_number }}</dd>
+                                </div>
+                            @endif
+                            @if ($order->payment?->payment_link)
+                                <div>
+                                    <dt class="text-xs uppercase text-slate-400">{{ __('Link Pembayaran') }}</dt>
+                                    <dd class="text-sm font-semibold text-slate-900">
+                                        <a href="{{ $order->payment->payment_link }}" target="_blank" rel="noreferrer" class="text-amber-700 hover:text-amber-800">
+                                            {{ __('Buka di tab baru') }}
+                                        </a>
+                                    </dd>
+                                </div>
+                            @endif
+                            @if ($order->payment?->qr_string)
+                                <div>
+                                    <dt class="text-xs uppercase text-slate-400">{{ __('QR String') }}</dt>
+                                    <dd class="text-sm font-semibold text-slate-900 break-words">{{ \Illuminate\Support\Str::limit($order->payment->qr_string, 80) }}</dd>
+                                    <p class="text-[11px] text-slate-500">{{ __('Gunakan tombol salin di atas untuk menyalin lengkap.') }}</p>
                                 </div>
                             @endif
                             @if ($order->payment?->transaction_id)
@@ -711,9 +789,4 @@
         </div>
     </div>
 
-    @if ($canRetryPayment && $order->payment?->snap_token && $midtransClientKey && $snapScriptUrl)
-        @push('scripts')
-            <script src="{{ $snapScriptUrl }}" data-client-key="{{ $midtransClientKey }}"></script>
-        @endpush
-    @endif
 </x-app-layout>

@@ -16,6 +16,7 @@ if (root) {
     const notesField = root.querySelector('[data-field-notes]');
     const hiddenShippingCode = root.querySelector('[data-field-shipping-code]');
     const hiddenShippingService = root.querySelector('[data-field-shipping-service]');
+    const bankSelect = root.querySelector('[data-bank-transfer-select]');
 
     const endpoints = {
         shipping: root.dataset.shippingEndpoint,
@@ -133,6 +134,14 @@ if (root) {
         return checked ? checked.value : null;
     };
 
+    const getSelectedBank = () => {
+        if (!bankSelect || getSelectedPaymentMethod() !== 'bank_transfer') {
+            return null;
+        }
+
+        return bankSelect.value || null;
+    };
+
     const handleAxiosError = (error) => {
         if (error.response?.data?.message) {
             return error.response.data.message;
@@ -193,7 +202,7 @@ if (root) {
             return null;
         }
 
-        const orderNumber = result?.order_id || result?.orderId || null;
+        const orderNumber = result?.order_number || result?.order_id || result?.orderId || null;
 
         if (successRedirectTemplate.includes('__ORDER_NUMBER__')) {
             if (!orderNumber) {
@@ -217,7 +226,7 @@ if (root) {
         }
     };
 
-    const redirectAfterPayment = (result) => {
+    const redirectAfterCheckout = (result) => {
         const successUrl = buildSuccessRedirectUrl(result);
 
         if (successUrl) {
@@ -225,36 +234,14 @@ if (root) {
             return;
         }
 
-        if (result?.finish_redirect_url) {
-            window.location.href = result.finish_redirect_url;
-            return;
-        }
-
         window.location.reload();
-    };
-
-    const triggerSnapPayment = (snapToken) => {
-        if (!window.snap || !snapToken) {
-            showGeneralError('Script Midtrans belum termuat. Reload halaman dan coba lagi.');
-            return;
-        }
-
-        window.snap.pay(snapToken, {
-            onSuccess: redirectAfterPayment,
-            onPending: redirectAfterPayment,
-            onError: (error) => {
-                showGeneralError(error.message || 'Pembayaran gagal. Silakan coba lagi.');
-            },
-            onClose: () => {
-                showGeneralError('Anda menutup jendela pembayaran sebelum selesai.');
-            },
-        });
     };
 
     const submitCheckout = async () => {
         const payload = {
             address_id: getSelectedAddressId(),
             payment_method: getSelectedPaymentMethod(),
+            payment_bank: getSelectedBank(),
             shipping_courier_code: hiddenShippingCode.value,
             shipping_service_code: hiddenShippingService.value,
             notes: notesField?.value,
@@ -275,6 +262,11 @@ if (root) {
             return;
         }
 
+        if (payload.payment_method === 'bank_transfer' && !payload.payment_bank) {
+            showGeneralError('Pilih bank untuk virtual account.');
+            return;
+        }
+
         showGeneralError('');
         checkoutButton.disabled = true;
         checkoutButton.textContent = 'Memproses...';
@@ -282,7 +274,7 @@ if (root) {
         try {
             const response = await axios.post(endpoints.submit, payload);
 
-            triggerSnapPayment(response.data.snap_token);
+            redirectAfterCheckout(response.data);
         } catch (error) {
             showGeneralError(handleAxiosError(error));
         } finally {
@@ -295,8 +287,20 @@ if (root) {
         input.addEventListener('change', () => fetchShippingRates());
     });
 
+    const handlePaymentChange = () => {
+        if (bankSelect) {
+            const active = getSelectedPaymentMethod() === 'bank_transfer';
+            bankSelect.disabled = !active;
+            bankSelect.parentElement?.classList.toggle('opacity-60', !active);
+        }
+    };
+
     refreshShippingButton?.addEventListener('click', () => fetchShippingRates());
     checkoutButton?.addEventListener('click', () => submitCheckout());
+    root.querySelectorAll('input[name="payment_method"]').forEach((input) => {
+        input.addEventListener('change', handlePaymentChange);
+    });
 
+    handlePaymentChange();
     renderShippingOptions();
 }

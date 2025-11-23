@@ -94,6 +94,18 @@
                                 <div>
                                     <p class="text-sm font-semibold text-slate-900">{{ $method['label'] }}</p>
                                     <p class="text-xs text-slate-500">{{ $method['description'] }}</p>
+                                    @if($key === 'bank_transfer')
+                                        <div class="mt-2">
+                                            <label class="text-xs uppercase text-slate-400" for="payment-bank">{{ __('Pilih Bank') }}</label>
+                                            <select id="payment-bank" class="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0" data-bank-transfer-select>
+                                                @foreach($method['banks'] ?? [] as $bank)
+                                                    <option value="{{ $bank }}" {{ $loop->first ? 'selected' : '' }}>
+                                                        {{ strtoupper($bank) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    @endif
                                 </div>
                                 @if(!empty($method['icon']))
                                     <span class="ml-auto rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{{ $method['icon'] }}</span>
@@ -184,10 +196,4 @@
             <input type="hidden" data-field-shipping-service>
         </div>
     </div>
-
-    @push('scripts')
-        @if($snapScriptUrl && $midtransClientKey)
-            <script src="{{ $snapScriptUrl }}" data-client-key="{{ $midtransClientKey }}"></script>
-        @endif
-    @endpush
 </x-app-layout>
