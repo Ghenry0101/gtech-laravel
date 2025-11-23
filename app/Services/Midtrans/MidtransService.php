@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 
 class MidtransService
 {
+    
     public function __construct(
         private readonly ?string $serverKey = null,
         private readonly ?string $clientKey = null,
@@ -69,6 +70,10 @@ class MidtransService
             'customer_details' => $customerDetails,
             'credit_card' => [
                 'secure' => true,
+            ],
+            'expiry' => [
+                'unit' => 'hour',
+                'duration' => 24,
             ],
         ];
 

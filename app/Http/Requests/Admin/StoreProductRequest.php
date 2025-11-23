@@ -19,8 +19,8 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'brand_id' => ['nullable', 'exists:brands,id'],
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'brand_id' => ['required', 'exists:brands,id'],
+            'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -36,6 +36,16 @@ class StoreProductRequest extends FormRequest
             'discount_active' => ['nullable', 'boolean'],
             'product_image' => ['required', 'image', 'max:3072'],
             'is_active' => ['nullable', 'boolean'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'brand_id.required' => __('Brand wajib dipilih.'),
+            'brand_id.exists' => __('Brand tidak ditemukan.'),
+            'category_id.required' => __('Kategori wajib dipilih.'),
+            'category_id.exists' => __('Kategori tidak ditemukan.'),
         ];
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\Midtrans\MidtransService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +39,7 @@ class OrderController extends Controller
         $this->ensureOwnerAccess($request, $order);
 
         $order->loadMissing([
+            'user',
             'items.product',
             'items.review',
             'items.review.images',
@@ -46,6 +49,7 @@ class OrderController extends Controller
         ]);
 
         $statusMeta = $this->statusMeta();
+        $midtrans = MidtransService::make();
 
         return view('orders.show', [
             'order' => $order,
@@ -53,6 +57,9 @@ class OrderController extends Controller
             'currentStatus' => $statusMeta[$order->order_status] ?? null,
             'paymentMethods' => config('midtrans.payment_methods', []),
             'cameFromCheckout' => $request->boolean('from_checkout'),
+            'midtransClientKey' => $midtrans->getClientKey(),
+            'snapScriptUrl' => $midtrans->snapScriptUrl(),
+            'paymentExpiresAt' => $this->paymentExpiresAt($order),
         ]);
     }
 
@@ -118,5 +125,16 @@ class OrderController extends Controller
                 'description' => __('Pesanan dibatalkan. Hubungi CS jika butuh bantuan.'),
             ],
         ];
+    }
+
+    protected function paymentExpiresAt(Order $order): ?Carbon
+    {
+        $reference = $order->order_time ?? $order->created_at;
+
+        if (! $reference) {
+            return null;
+        }
+
+        return $reference->copy()->addDay();
     }
 }

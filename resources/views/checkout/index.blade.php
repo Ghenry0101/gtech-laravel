@@ -139,6 +139,9 @@
                             <span data-summary-total>Rp {{ number_format($summary['subtotal'], 0, ',', '.') }}</span>
                         </div>
                         <p class="text-xs text-slate-500">{{ __('Total sudah termasuk seluruh produk dan ongkir pilihan Anda.') }}</p>
+                        <div class="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                            {{ __('Segera selesaikan pembayaran dalam 24 jam. Pesanan langsung tercatat di halaman Riwayat Pesanan dan bisa dibuka lagi dari sana.') }}
+                        </div>
                         <div class="hidden rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700" data-checkout-error></div>
                         <button
                             type="button"

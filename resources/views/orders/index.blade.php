@@ -41,6 +41,7 @@
                             $firstItem = $order->items->first();
                             $needsReview = $order->order_status === 'completed'
                                 && $order->items->contains(fn ($item) => $item->review === null);
+                            $expiresAt = optional($order->order_time ?? $order->created_at)?->copy()->addDay();
                         @endphp
                         <div class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -57,6 +58,18 @@
                                     </span>
                                 @endif
                             </div>
+                            @if ($order->order_status === 'pending' && ! $order->paid_at)
+                                @php($isExpired = $expiresAt && now()->greaterThanOrEqualTo($expiresAt))
+                                @if ($isExpired)
+                                    <p class="mt-2 text-xs font-semibold text-rose-600">
+                                        {{ __('Batas waktu pembayaran telah lewat. Pesanan akan dihapus otomatis.') }}
+                                    </p>
+                                @else
+                                    <p class="mt-2 text-xs font-semibold text-amber-600">
+                                        {{ __('Bayar sebelum :time agar pesanan tidak dihapus.', ['time' => optional($expiresAt)?->format('d M Y H:i')]) }}
+                                    </p>
+                                @endif
+                            @endif
                             <div class="mt-4 grid gap-4 sm:grid-cols-3">
                                 <div>
                                     <p class="text-xs uppercase text-slate-400">{{ __('Ringkasan Barang') }}</p>

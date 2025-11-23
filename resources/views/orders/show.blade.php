@@ -8,6 +8,11 @@
     $latestComplaint = $order->complaints->sortByDesc('created_at')->first();
     $canSubmitComplaint = in_array($order->order_status, ['shipped', 'completed'], true)
         && (! $latestComplaint || $latestComplaint->status !== 'pending');
+    $expiresAt = $paymentExpiresAt ?? optional($order->order_time ?? $order->created_at)?->copy()->addDay();
+    $canRetryPayment = $order->order_status === 'pending'
+        && ! $order->paid_at
+        && (! $expiresAt || now()->lessThan($expiresAt));
+    $expiryLabel = $expiresAt ? $expiresAt->format('d M Y H:i') : null;
 @endphp
 
 <x-app-layout>
@@ -44,6 +49,7 @@
             @if ($cameFromCheckout)
                 <div class="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-6 py-5 text-sm text-emerald-800">
                     <p class="font-semibold">{{ __('Terima kasih! Pesanan Anda berhasil dibuat.') }}</p>
+                    <p class="mt-1">{{ __('Pesanan sudah tersimpan di halaman ini. Selesaikan pembayaran dalam 24 jam agar pesanan tidak dibatalkan otomatis.') }}</p>
                     <p class="mt-1">{{ __('Status pembayaran akan diperbarui otomatis begitu Midtrans mengkonfirmasi transaksi Anda.') }}</p>
                 </div>
             @endif
@@ -58,6 +64,39 @@
                 <div class="mb-6 rounded-md border border-rose-200 bg-rose-50 px-6 py-5 text-sm text-rose-800">
                     <p class="font-semibold">{{ __('Pesanan dibatalkan') }}</p>
                     <p class="mt-1">{{ $currentStatus['description'] ?? __('Silakan hubungi tim kami jika ini tidak sesuai.') }}</p>
+                </div>
+            @endif
+
+            @if ($canRetryPayment)
+                <div
+                    class="mb-6 rounded-md border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-800"
+                    data-order-payment
+                    data-snap-token="{{ $order->payment?->snap_token }}"
+                    data-redirect="{{ route('orders.show', $order) }}"
+                >
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="font-semibold">{{ __('Menunggu pembayaran dalam 24 jam') }}</p>
+                            <p class="mt-1">
+                                {{ __('Pesanan ini akan dihapus otomatis jika belum dibayar.') }}
+                                @if ($expiryLabel)
+                                    {{ __('Batas waktu: :time', ['time' => $expiryLabel]) }}
+                                @endif
+                            </p>
+                        </div>
+                        @if ($order->payment?->snap_token && $midtransClientKey && $snapScriptUrl)
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-md bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+                                data-order-pay-trigger
+                            >
+                                {{ __('Bayar Sekarang') }}
+                            </button>
+                        @else
+                            <p class="mt-2 text-xs text-rose-600 sm:mt-0">{{ __('Token pembayaran belum tersedia. Hubungi CS untuk bantuan.') }}</p>
+                        @endif
+                    </div>
+                    <p class="mt-2 hidden text-xs text-rose-700" data-order-payment-error></p>
                 </div>
             @endif
 
@@ -208,6 +247,17 @@
                                         {{ __('Menunggu konfirmasi Midtrans') }}
                                     @endif
                                 </p>
+                                @if ($expiryLabel && $order->order_status === 'pending')
+                                    @if ($canRetryPayment)
+                                        <p class="mt-1 text-xs font-semibold text-amber-600">
+                                            {{ __('Bayar sebelum :time agar pesanan tidak dihapus.', ['time' => $expiryLabel]) }}
+                                        </p>
+                                    @else
+                                        <p class="mt-1 text-xs font-semibold text-rose-600">
+                                            {{ __('Batas waktu pembayaran telah lewat. Pesanan akan dihapus otomatis.') }}
+                                        </p>
+                                    @endif
+                                @endif
                             </div>
                             @if ($order->payment?->va_number)
                                 <div>
@@ -660,4 +710,10 @@
             </div>
         </div>
     </div>
+
+    @if ($canRetryPayment && $order->payment?->snap_token && $midtransClientKey && $snapScriptUrl)
+        @push('scripts')
+            <script src="{{ $snapScriptUrl }}" data-client-key="{{ $midtransClientKey }}"></script>
+        @endpush
+    @endif
 </x-app-layout>

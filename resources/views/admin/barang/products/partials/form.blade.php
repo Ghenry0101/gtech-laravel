@@ -95,6 +95,11 @@
     x-init="if (discountActive) { if (discountPercent) { syncDiscountFromPercent(); } else if (discountPrice) { syncDiscountFromPrice(); } }"
     class="space-y-8"
 >
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <p class="font-semibold">{{ __('Kategori dan brand wajib diisi') }}</p>
+        <p>{{ __('Pilih kategori serta brand sebelum menyimpan produk baru.') }}</p>
+    </div>
+
     <div class="grid gap-6 md:grid-cols-2">
         <div class="space-y-1">
             <x-input-label for="name" :value="__('Nama Produk')" />
@@ -130,8 +135,9 @@
                 id="category_id"
                 name="category_id"
                 class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring focus:ring-slate-200"
+                required
             >
-                <option value="">{{ __('Tanpa Kategori') }}</option>
+                <option value="" disabled @selected($initialCategoryValue === '')>{{ __('Pilih kategori (wajib)') }}</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->id }}" @selected(old('category_id', data_get($product ?? null, 'category_id')) == $category->id)>
                         {{ $category->name }}
@@ -147,8 +153,9 @@
                 id="brand_id"
                 name="brand_id"
                 class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring focus:ring-slate-200"
+                required
             >
-                <option value="">{{ __('Tanpa Brand') }}</option>
+                <option value="" disabled @selected($initialBrandValue === '')>{{ __('Pilih brand (wajib)') }}</option>
                 @foreach ($brands as $brand)
                     <option value="{{ $brand->id }}" @selected(old('brand_id', data_get($product ?? null, 'brand_id')) == $brand->id)>
                         {{ $brand->name }}
