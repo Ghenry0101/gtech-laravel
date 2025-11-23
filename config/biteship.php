@@ -48,6 +48,7 @@ return [
             ],
         ],
     ],
+    'webhook_secret' => env('BITESHIP_WEBHOOK_SECRET'),
     'origin' => [
         'contact_name' => env('BITESHIP_ORIGIN_CONTACT_NAME', env('APP_NAME', 'GTech Store')),
         'contact_phone' => env('BITESHIP_ORIGIN_CONTACT_PHONE'),

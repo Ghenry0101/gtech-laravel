@@ -186,55 +186,60 @@ class BiteshipService
      * @throws RequestException
      */
     public function createShipment(array $payload): array
-{
-    // PENTING: Biteship hanya menerima 'now' atau 'scheduled'
-    // Force fix jika ada value selain itu
-    if (!isset($payload['delivery_type']) || !in_array($payload['delivery_type'], ['now', 'scheduled'])) {
-        $payload['delivery_type'] = 'now';
-    }
+    {
+        $instantCouriers = ['instant', 'same_day', 'sameday', 'on_demand', 'ondemand'];
+        $courierType = strtolower((string) ($payload['courier_type'] ?? ''));
+        $isInstant = in_array($courierType, $instantCouriers, true);
 
-    // Untuk 'scheduled', delivery_date dan delivery_time WAJIB
-    if ($payload['delivery_type'] === 'scheduled') {
-        if (!isset($payload['delivery_date'])) {
-            $payload['delivery_date'] = now()->addDay()->format('Y-m-d');
+        if ($isInstant) {
+            // Biteship hanya menerima 'now' atau 'scheduled'
+            if (! isset($payload['delivery_type']) || ! in_array($payload['delivery_type'], ['now', 'scheduled'], true)) {
+                $payload['delivery_type'] = 'now';
+            }
+
+            if ($payload['delivery_type'] === 'scheduled') {
+                if (! isset($payload['delivery_date'])) {
+                    $payload['delivery_date'] = now()->addDay()->format('Y-m-d');
+                }
+                if (! isset($payload['delivery_time'])) {
+                    $payload['delivery_time'] = '09:00';
+                }
+            } else {
+                unset($payload['delivery_date'], $payload['delivery_time']);
+            }
+        } else {
+            $payload['delivery_type'] = 'now';
+            unset($payload['delivery_date'], $payload['delivery_time']);
         }
-        if (!isset($payload['delivery_time'])) {
-            $payload['delivery_time'] = '09:00';
+
+        // Hapus field yang tidak diperlukan oleh API Biteship
+        unset($payload['courier_code'], $payload['courier_service_code']);
+
+        Log::info('Biteship shipment payload', ['payload' => $payload]);
+
+        try {
+            $response = $this->client()
+                ->post('/orders', $payload)
+                ->throw();
+
+            $result = $response->json();
+
+            Log::info('Biteship shipment success', [
+                'order_id' => $result['id'] ?? null,
+                'waybill_id' => $result['courier']['waybill_id'] ?? null,
+            ]);
+
+            return $result;
+        } catch (RequestException $e) {
+            Log::error('Biteship shipment failed', [
+                'status' => $e->response?->status(),
+                'body' => $e->response?->body(),
+                'payload' => $payload,
+            ]);
+
+            throw $e;
         }
-    } else {
-        // Untuk 'now', hapus delivery_date dan delivery_time
-        unset($payload['delivery_date'], $payload['delivery_time']);
     }
-
-    // Hapus field yang tidak diperlukan oleh API Biteship
-    unset($payload['courier_code'], $payload['courier_service_code']);
-
-    // Log untuk debugging
-    Log::info('Biteship shipment payload', ['payload' => $payload]);
-
-    try {
-        $response = $this->client()
-            ->post('/orders', $payload)
-            ->throw();
-
-        $result = $response->json();
-        
-        Log::info('Biteship shipment success', [
-            'order_id' => $result['id'] ?? null,
-            'waybill_id' => $result['courier']['waybill_id'] ?? null,
-        ]);
-        
-        return $result;
-    } catch (RequestException $e) {
-        Log::error('Biteship shipment failed', [
-            'status' => $e->response?->status(),
-            'body' => $e->response?->body(),
-            'payload' => $payload,
-        ]);
-        
-        throw $e;
-    }
-}
 
     protected function client(): PendingRequest
     {

@@ -6,6 +6,15 @@
         'shipped' => ['label' => __('Sedang Dikirim'), 'badge' => 'bg-indigo-100 text-indigo-800'],
         'completed' => ['label' => __('Selesai'), 'badge' => 'bg-emerald-100 text-emerald-800'],
     ];
+    $shippingStatusOptions = [
+        'processing' => __('Sedang diproses gudang'),
+        'courier_allocated' => __('Kurir ditemukan'),
+        'picking_up' => __('Kurir menuju lokasi pickup'),
+        'picked' => __('Barang dijemput kurir'),
+        'delivering' => __('Menuju pelanggan'),
+        'shipped' => __('Sedang dikirim / courier pick up'),
+        'delivered' => __('Sudah diterima pelanggan'),
+    ];
 @endphp
 
 <x-app-layout>
@@ -93,6 +102,49 @@
                         </div>
                     </section>
 
+                    @php
+                        $trackingHistory = ($order->shipment?->trackings ?? collect())->sortBy('recorded_at')->values();
+                        $trackingStatusLabels = [
+                            'courier_allocated' => __('Kurir ditemukan'),
+                            'picking_up' => __('Kurir menuju lokasi pickup'),
+                            'picked' => __('Barang dijemput kurir'),
+                            'delivering' => __('Menuju pelanggan'),
+                            'delivered' => __('Berhasil dikirim'),
+                        ];
+                    @endphp
+                    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-slate-900">{{ __('Tracking Resi') }}</p>
+                            <p class="text-xs text-slate-500">
+                                {{ $order->shipment?->tracking_id ?: $order->shipment?->waybill_id ?: __('Belum ada resi') }}
+                            </p>
+                        </div>
+                        <div class="mt-4 space-y-4">
+                            @if ($trackingHistory->isEmpty())
+                                <p class="text-sm text-slate-500">{{ __('Belum ada update tracking dari Biteship.') }}</p>
+                            @else
+                                @foreach ($trackingHistory as $event)
+                                    @php
+                                        $recordedAt = $event->recorded_at ? $event->recorded_at->format('d-m-Y H:i:s') : null;
+                                        $status = $event->status ?? '-';
+                                        $description = $event->description ?: ($trackingStatusLabels[$status] ?? $status);
+                                    @endphp
+                                    <div class="flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                {{ \Illuminate\Support\Str::headline($status) }}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                {{ $recordedAt ?? '-' }}
+                                            </p>
+                                        </div>
+                                        <p class="text-sm text-slate-800">{{ $description }}</p>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                    </section>
+
                     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm grid gap-6 md:grid-cols-2">
                         <div>
                             <p class="text-sm font-semibold text-slate-900">{{ __('Alamat Pengiriman') }}</p>
@@ -157,9 +209,9 @@
                             <div>
                                 <label class="text-xs uppercase text-slate-400" for="status">{{ __('Status Pengiriman') }}</label>
                                 <select id="status" name="status" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-0">
-                                    <option value="processing" @selected(old('status', $order->shipment?->status) === 'processing')>{{ __('Sedang diproses gudang') }}</option>
-                                    <option value="shipped" @selected(old('status', $order->shipment?->status) === 'shipped')>{{ __('Sedang dikirim / courier pick up') }}</option>
-                                    <option value="delivered" @selected(old('status', $order->shipment?->status) === 'delivered')>{{ __('Sudah diterima pelanggan') }}</option>
+                                    @foreach ($shippingStatusOptions as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('status', $order->shipment?->status) === $value)>{{ $label }}</option>
+                                    @endforeach
                                 </select>
                                 <p class="mt-1 text-xs text-slate-500">{{ __('Perubahan status akan ikut mengubah status pesanan pelanggan.') }}</p>
                                 @error('status')

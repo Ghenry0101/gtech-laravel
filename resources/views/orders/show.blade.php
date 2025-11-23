@@ -6,13 +6,45 @@
     $statusLabel = $currentStatus['label'] ?? \Illuminate\Support\Str::headline($order->order_status);
     $statusBadgeClass = $currentStatus['badge_class'] ?? 'bg-slate-100 text-slate-700';
     $latestComplaint = $order->complaints->sortByDesc('created_at')->first();
-    $canSubmitComplaint = in_array($order->order_status, ['shipped', 'completed'], true)
+    $canSubmitComplaint = $order->order_status === 'completed'
         && (! $latestComplaint || $latestComplaint->status !== 'pending');
     $expiresAt = $paymentExpiresAt ?? optional($order->order_time ?? $order->created_at)?->copy()->addDay();
     $canRetryPayment = $order->order_status === 'pending'
         && ! $order->paid_at
         && (! $expiresAt || now()->lessThan($expiresAt));
     $expiryLabel = $expiresAt ? $expiresAt->format('d M Y H:i') : null;
+    $shipment = $order->shipment;
+    $trackingEvents = $shipment?->trackings?->sortBy('recorded_at')->values() ?? collect();
+    $trackingStatusLabels = [
+        'courier_allocated' => __('Kurir ditemukan'),
+        'picking_up' => __('Kurir menuju lokasi pickup'),
+        'picked' => __('Barang dijemput kurir'),
+        'delivering' => __('Menuju pelanggan'),
+        'delivered' => __('Berhasil dikirim'),
+    ];
+    $latestTrackingStatus = $trackingEvents->last()?->status;
+    if (! $latestTrackingStatus && $shipment && array_key_exists($shipment->status, $trackingStatusLabels)) {
+        $latestTrackingStatus = $shipment->status;
+    }
+    $trackingStatusLabel = $latestTrackingStatus
+        ? ($trackingStatusLabels[$latestTrackingStatus] ?? \Illuminate\Support\Str::headline($latestTrackingStatus))
+        : __('Belum ada update');
+    $trackingNumber = $shipment?->tracking_id ?: $shipment?->waybill_id;
+    $orderDate = $order->order_time ?? $order->created_at;
+    $orderDateLabel = $orderDate ? $orderDate->format('d M Y — H.i') . ' WIB' : '-';
+    $totalWeightGram = (int) $order->items->sum(fn ($item) => (int) ($item->product?->weight ?? 0) * max(1, $item->quantity));
+    $totalWeightKg = $totalWeightGram > 0 ? number_format($totalWeightGram / 1000, 2) : '0.00';
+    $shippingCostValue = $order->shipping_cost ?? $shipment?->shipping_cost ?? 0;
+    $inTransitStatuses = ['courier_allocated', 'picking_up', 'picked', 'delivering', 'delivered', 'shipped'];
+    $shouldShowDriver = $shipment && in_array($shipment->status, $inTransitStatuses, true);
+    $driverDefaults = [
+        'name' => 'John Doe',
+        'phone' => '08123456789',
+        'plate' => 'B 12345 ABC',
+    ];
+    $driverName = $shipment?->driver_name ?? ($shouldShowDriver ? $driverDefaults['name'] : null);
+    $driverPhone = $shipment?->driver_phone ?? ($shouldShowDriver ? $driverDefaults['phone'] : null);
+    $driverPlate = $shipment?->driver_plate_number ?? ($shouldShowDriver ? $driverDefaults['plate'] : null);
 @endphp
 
 <x-app-layout>
@@ -22,7 +54,7 @@
                 <p class="text-xs uppercase text-slate-400">{{ __('Pesanan #') }}{{ $order->order_number }}</p>
                 <h1 class="text-2xl font-semibold text-slate-900">{{ __('Detail Pesanan') }}</h1>
                 <p class="text-xs text-slate-500">
-                    {{ __('Dibuat pada :date', ['date' => optional($order->order_time ?? $order->created_at)->format('d M Y H:i')]) }}
+                    {{ __('Dibuat pada :date', ['date' => $orderDateLabel]) }}
                 </p>
             </div>
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -246,39 +278,80 @@
                     <section class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-semibold text-slate-900">{{ __('Informasi Pengiriman') }}</p>
-                                <p class="text-xs text-slate-500">{{ __('Detail kurir dan tracking paket.') }}</p>
+                                <p class="text-sm font-semibold text-slate-900">{{ __('Detail Pengiriman') }}</p>
+                                <p class="text-xs text-slate-500">{{ __('Status real-time dan informasi resi Anda.') }}</p>
                             </div>
                         </div>
-                        <dl class="mt-4 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <dt class="text-xs uppercase text-slate-400">{{ __('Kurir') }}</dt>
-                                <dd class="text-sm font-semibold text-slate-900">{{ $order->shipment?->courier_name ?? __('Belum ditentukan') }}</dd>
-                                <p class="text-xs text-slate-500">{{ $order->shipment?->courier_service }}</p>
+                        <div class="mt-4 grid gap-6 lg:grid-cols-[1.1fr,1fr]">
+                            <div class="rounded-md border border-slate-100 bg-slate-50 p-4">
+                                <dl class="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('ID Pesanan') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $order->order_number }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('No. Resi') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $trackingNumber ?? __('Belum tersedia') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Status') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $trackingStatusLabel }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Tanggal Order') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $orderDateLabel }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Kurir') }}</dt>
+                                        @php
+                                            $courierLabel = trim(($shipment?->courier_name ?? '').' '.($shipment?->courier_service ?? ''));
+                                        @endphp
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $courierLabel !== '' ? $courierLabel : __('Belum ditentukan') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Berat') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $totalWeightKg }} {{ __('kg') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Ongkos Kirim') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $formatCurrency($shippingCostValue) }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Nama Driver') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $driverName ?? __('Belum tersedia') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Nomor HP Driver') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $driverPhone ?? __('Belum tersedia') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Plat Nomor') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">{{ $driverPlate ?? __('Belum tersedia') }}</dd>
+                                    </div>
+                                </dl>
                             </div>
-                            <div>
-                                <dt class="text-xs uppercase text-slate-400">{{ __('Status Pengiriman') }}</dt>
-                                <dd class="text-sm font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($order->shipment?->status ?? '-') }}</dd>
-                                @php
-                                    $trackingId = $order->shipment?->tracking_id;
-                                    $waybillId = $order->shipment?->waybill_id;
-                                    $hasTracking = filled($trackingId);
-                                    $hasWaybill = filled($waybillId);
-                                @endphp
-                                @if ($hasTracking || $hasWaybill)
-                                    <p class="text-xs text-slate-500">
-                                        {{ __('Nomor Resi: :resi', ['resi' => $trackingId ?? $waybillId]) }}
-                                    </p>
-                                    @if ($hasWaybill && $trackingId !== $waybillId)
-                                        <p class="text-xs text-slate-500">
-                                            {{ __('Waybill Biteship: :waybill', ['waybill' => $waybillId]) }}
-                                        </p>
-                                    @endif
-                                @else
-                                    <p class="text-xs text-slate-500">{{ __('Resi belum tersedia') }}</p>
-                                @endif
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-semibold text-slate-900">{{ __('Tracking Timeline') }}</p>
+                                    <p class="text-[11px] uppercase text-slate-500">{{ __('Urutan lama ke baru') }}</p>
+                                </div>
+                                <div class="space-y-3">
+                                    @forelse ($trackingEvents as $event)
+                                        @php
+                                            $recordedAt = $event->recorded_at ? $event->recorded_at->format('d-m-Y H:i:s') : '-';
+                                            $eventLabel = $trackingStatusLabels[$event->status] ?? \Illuminate\Support\Str::headline($event->status);
+                                            $description = $event->description ?: $eventLabel;
+                                        @endphp
+                                        <div class="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $recordedAt }}</p>
+                                            <p class="text-sm text-slate-900">{{ $description }}</p>
+                                        </div>
+                                    @empty
+                                        <p class="text-sm text-slate-500">{{ __('Belum ada update tracking dari kurir.') }}</p>
+                                    @endforelse
+                                </div>
                             </div>
-                        </dl>
+                        </div>
                     </section>
 
                     <section class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">

@@ -23,7 +23,7 @@ class ShipmentDetailRequest extends FormRequest
             'shipping_cost' => ['nullable', 'numeric', 'min:0'],
             'status' => [
                 'nullable',
-                Rule::in(['processing', 'shipped', 'delivered']),
+                Rule::in(['processing', 'courier_allocated', 'picking_up', 'picked', 'delivering', 'delivered', 'shipped']),
             ],
         ];
     }

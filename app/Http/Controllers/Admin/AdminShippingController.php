@@ -136,7 +136,7 @@ class AdminShippingController extends Controller
 
         $order->loadMissing([
             'items.product',
-            'shipment',
+            'shipment.trackings',
             'payment',
             'user',
         ]);
@@ -191,7 +191,7 @@ class AdminShippingController extends Controller
         $order->refresh();
         if (
             $shouldUpdateStatus
-            && $status === 'shipped'
+            && in_array($status, ['shipped', 'courier_allocated', 'picking_up', 'picked', 'delivering'], true)
             && ($order->shipment?->tracking_id === null || $order->shipment?->waybill_id === null)
         ) {
             ShipmentDispatcher::make()->dispatch($order);
@@ -227,7 +227,7 @@ class AdminShippingController extends Controller
 
         $order->refresh();
         if (
-            $data['status'] === 'shipped'
+            in_array($data['status'], ['shipped', 'courier_allocated', 'picking_up', 'picked', 'delivering'], true)
             && ($order->shipment?->tracking_id === null || $order->shipment?->waybill_id === null)
         ) {
             ShipmentDispatcher::make()->dispatch($order);
@@ -256,7 +256,9 @@ class AdminShippingController extends Controller
             $shipmentUpdates['waybill_id'] = $waybillId;
         }
 
-        if ($status === 'shipped') {
+        $inTransitStatuses = ['courier_allocated', 'picking_up', 'picked', 'delivering', 'shipped'];
+
+        if (in_array($status, $inTransitStatuses, true)) {
             $shipmentUpdates['shipped_at'] = $shipment?->shipped_at ?? now();
             $shipmentUpdates['delivered_at'] = null;
             $orderStatus = 'shipped';

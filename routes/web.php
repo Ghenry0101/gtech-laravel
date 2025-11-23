@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminComplaintController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\BiteshipAreaController;
+use App\Http\Controllers\BiteshipWebhookController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemReviewController;
 use App\Models\Product;

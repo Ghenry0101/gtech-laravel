@@ -20,6 +20,9 @@ class Shipment extends Model
         'courier_service_code',
         'courier_name',
         'courier_service',
+        'driver_name',
+        'driver_phone',
+        'driver_plate_number',
         'tracking_id',
         'waybill_id',
         'biteship_order_id',
@@ -42,5 +45,10 @@ class Shipment extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function trackings()
+    {
+        return $this->hasMany(ShipmentTracking::class)->orderBy('recorded_at');
     }
 }

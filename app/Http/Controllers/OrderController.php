@@ -43,7 +43,7 @@ class OrderController extends Controller
             'items.review',
             'items.review.images',
             'complaints.images',
-            'shipment',
+            'shipment.trackings',
             'payment',
         ]);
 

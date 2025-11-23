@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 class VerifyCsrfToken extends Middleware
 {
     protected $except = [
-    'payment/notification',
-    'midtrans/callback',
-];
+        'payment/notification',
+        'midtrans/callback',
+    ];
 }

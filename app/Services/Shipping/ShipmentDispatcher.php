@@ -73,6 +73,12 @@ class ShipmentDispatcher
 
         $ratePayload = $shipment->rate_payload ?? [];
         $selectedRate = data_get($ratePayload, 'selected_rate', $ratePayload);
+
+        Log::info('shipment.selected_rate', [
+            'order_id' => $order->id,
+            'shipment_id' => $shipment->id,
+            'selected_rate' => $selectedRate,
+        ]);
         $courierType = $this->extractCourierType($shipment->courier_service_code, $selectedRate);
         $courierCompany = data_get($selectedRate, 'courier.company')
             ?? $shipment->courier_name
@@ -130,12 +136,13 @@ class ShipmentDispatcher
             $waybillId = $response['waybill_id']
                 ?? data_get($response, 'courier.waybill_id')
                 ?? ($shipment->waybill_id ?: $trackingId);
+            $mappedShipmentStatus = $this->mapShipmentStatus(data_get($response, 'status'));
 
             $shipment->forceFill([
                 'biteship_order_id' => $response['id'] ?? $response['order_id'] ?? $shipment->biteship_order_id,
                 'tracking_id' => $trackingId,
                 'waybill_id' => $waybillId,
-                'status' => $response['status'] ?? 'processing',
+                'status' => $mappedShipmentStatus ?? $shipment->status ?? 'processing',
                 'rate_payload' => array_merge($shipment->rate_payload ?? [], ['order' => $response]),
                 'shipped_at' => $shipment->shipped_at ?? now(),
             ])->save();
@@ -158,7 +165,10 @@ class ShipmentDispatcher
 
     protected function extractCourierType(?string $serviceCode, array $ratePayload): string
     {
-        $courierType = data_get($ratePayload, 'courier.type')
+        $raw = data_get($ratePayload, 'raw');
+        $courierType = data_get($raw, 'type')
+            ?? data_get($raw, 'courier_type')
+            ?? data_get($ratePayload, 'courier.type')
             ?? data_get($ratePayload, 'courier_type')
             ?? data_get($ratePayload, 'type')
             ?? data_get($ratePayload, 'service_type')
@@ -167,29 +177,54 @@ class ShipmentDispatcher
         $type = strtolower((string) $courierType);
         $serviceCode = strtolower((string) $serviceCode);
 
-        if ($type === 'regular' && $serviceCode !== '') {
-            if (str_contains($serviceCode, 'same')) {
-                return 'same_day';
+        if (in_array($type, ['regular', 'standard', 'reguler'], true)) {
+            if ($serviceCode !== '') {
+                if (str_contains($serviceCode, 'same')) {
+                    return 'same_day';
+                }
+
+                if (str_contains($serviceCode, 'instant')) {
+                    return 'instant';
+                }
             }
 
-            if (str_contains($serviceCode, 'instant')) {
-                return 'instant';
-            }
+            return 'reg';
         }
 
-        return $courierType;
+        return $type !== '' ? $type : 'reg';
+    }
+
+    protected function mapShipmentStatus(?string $status): ?string
+    {
+        $status = strtolower((string) $status);
+
+        return match ($status) {
+            'confirmed', 'pending', 'ready_to_pickup', 'waiting_assignment', 'awaiting_pickup' => 'processing',
+            'allocated', 'courier_allocated' => 'courier_allocated',
+            'picking_up', 'starting_pickup', 'on_pickup', 'courier_pickup' => 'picking_up',
+            'picked', 'picked_up' => 'picked',
+            'delivering', 'on_delivery', 'in_transit', 'reg' => 'delivering',
+            'delivered', 'complete', 'completed' => 'delivered',
+            'failed', 'cancelled', 'canceled' => 'failed',
+            default => null,
+        };
     }
 
     protected function determineDeliveryType(array $ratePayload, string $courierType): ?string
     {
         $deliveryType = data_get($ratePayload, 'delivery_type');
         $normalizedType = strtolower((string) $courierType);
+        $instantCouriers = ['instant', 'same_day', 'sameday', 'on_demand', 'ondemand'];
 
-        if (! $deliveryType && in_array($normalizedType, ['instant', 'same_day', 'sameday', 'on_demand', 'ondemand'], true)) {
-            $deliveryType = 'now';
+        if (! in_array($normalizedType, $instantCouriers, true)) {
+            return null;
         }
 
-        return $deliveryType ? strtolower((string) $deliveryType) : null;
+        if (! $deliveryType) {
+            return 'now';
+        }
+
+        return strtolower((string) $deliveryType);
     }
 
     protected function assignFallbackTracking(Order $order, string $reason = 'fallback'): void
