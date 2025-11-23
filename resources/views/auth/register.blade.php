@@ -1,7 +1,7 @@
 <x-guest-layout>
     <form method="POST" action="{{ route('register') }}" class="space-y-8 ">
         @csrf
-
+    <div class="grid grid-cols-1 sm:grid-cols-2  gap-4">
         <div class="space-y-2">
             <label for="name" class="text-xs font-semibold uppercase  text-gray-900">Username</label>
             <div class="border-b border-gray-300 transition focus-within:border-gray-900">
@@ -38,7 +38,7 @@
                 <p class="text-xs text-red-500">{{ $message }}</p>
             @enderror
         </div>
-
+    </div>
         <div class="space-y-2">
             <label for="password" class="text-xs font-semibold uppercase text-gray-900">Password</label>
             <div class="border-b border-gray-300 transition focus-within:border-gray-900">
@@ -73,7 +73,7 @@
             @enderror
         </div>
 
-        <button type="submit" class="mt-4 w-full rounded-[18px] bg-gray-900 py-4 text-center text-sm font-semibold uppercase  text-white shadow-[0_15px_35px_rgba(0,0,0,0.25)] transition hover:bg-black">
+        <button type="submit" class="mt-4 w-full rounded-md bg-gray-900 py-4 text-center text-sm font-semibold uppercase  text-white shadow-[0_15px_35px_rgba(0,0,0,0.25)] transition hover:bg-black">
             Sign Up
         </button>
 
