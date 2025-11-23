@@ -21,7 +21,7 @@
             data-success-redirect="{{ route('orders.show', ['order' => '__ORDER_NUMBER__']) }}?from_checkout=1"
         >
             <div class="space-y-6">
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Alamat Pengiriman') }}</p>
                         <p class="text-xs text-slate-500">{{ __('Pilih alamat tujuan paket dikirim.') }}</p>
@@ -43,7 +43,7 @@
                                         <span class="text-xs text-slate-500">{{ $address->phone }}</span>
                                     </div>
                                     @if($address->is_default)
-                                        <span class="ml-auto rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-semibold text-emerald-700">{{ __('Utama') }}</span>
+                                        <span class="ml-auto rounded-md bg-emerald-100 px-3 py-0.5 text-xs font-semibold text-emerald-700">{{ __('Utama') }}</span>
                                     @endif
                                 </div>
                                 <p class="text-sm text-slate-600">
@@ -58,7 +58,7 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm" data-shipping-section>
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm" data-shipping-section>
                     <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
                         <div>
                             <p class="text-sm font-semibold text-slate-900">{{ __('Ekspedisi Pengiriman') }}</p>
@@ -76,7 +76,7 @@
                     <div class="hidden p-4 text-sm text-rose-600" data-shipping-error></div>
                 </section>
 
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Metode Pembayaran') }}</p>
                         <p class="text-xs text-slate-500">{{ __('Pilih cara bayar favorit Anda, transaksi diproses melalui Midtrans.') }}</p>
@@ -115,14 +115,14 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Catatan Pesanan') }}</p>
                     </div>
                     <div class="p-6">
                         <textarea
                             rows="3"
-                            class="w-full rounded-xl border-slate-200 text-sm text-slate-700 focus:border-slate-400 focus:ring-slate-400"
+                            class="w-full rounded-md border-slate-200 text-sm text-slate-700 focus:border-slate-400 focus:ring-slate-400"
                             placeholder="{{ __('Contoh: titip di satpam, warna bebas, dll') }}"
                             data-field-notes
                         ></textarea>
@@ -131,7 +131,7 @@
             </div>
 
             <aside class="space-y-6">
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Ringkasan Biaya') }}</p>
                     </div>
@@ -157,7 +157,7 @@
                         <div class="hidden rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700" data-checkout-error></div>
                         <button
                             type="button"
-                            class="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
+                            class="mt-2 inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
                             data-checkout-submit
                         >
                             {{ __('Bayar Sekarang') }}
@@ -165,14 +165,14 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <section class="rounded-md border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-4">
                         <p class="text-sm font-semibold text-slate-900">{{ __('Detail Produk') }}</p>
                     </div>
                     <div class="divide-y divide-slate-100">
                         @foreach($cartItems as $item)
                             <div class="flex items-center gap-3 px-6 py-4">
-                                <div class="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                <div class="h-16 w-16 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                                     <img
                                         src="{{ $item->product?->product_image ? asset('storage/'.$item->product->product_image) : asset('images/PC.png') }}"
                                         alt="{{ $item->product?->name }}"

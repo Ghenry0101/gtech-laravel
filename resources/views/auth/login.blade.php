@@ -50,7 +50,7 @@
             </div>
         @endif
 
-        <button type="submit" class="mt-4 w-full rounded-[18px] bg-gray-900 py-4 text-center text-sm font-semibold uppercase text-white shadow-[0_15px_35px_rgba(0,0,0,0.25)] transition hover:bg-black">
+        <button type="submit" class="mt-4 w-full rounded-md bg-gray-900 py-4 text-center text-sm font-semibold uppercase text-white shadow-[0_15px_35px_rgba(0,0,0,0.25)] transition hover:bg-black">
             Sign In
         </button>
 
