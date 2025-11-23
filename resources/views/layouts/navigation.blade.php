@@ -16,7 +16,7 @@
         <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex flex-1 items-center gap-4">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('images/G-Tech.png') }}" class="block h-5 w-auto fill-current text-gray-800" />
+                    <img src="{{ asset('images/G-Tech5.png') }}" class="block h-5 w-auto fill-current text-gray-800" />
                 </a>
                 <div class="flex-1">
                     <form action="{{ route('search') }}" method="GET" class="relative">

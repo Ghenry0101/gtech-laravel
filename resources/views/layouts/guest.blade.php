@@ -29,10 +29,10 @@
     </head>
     <body class="antialiased bg-neutral-100 text-gray-900">
         <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-100">
-            <div class="w-full max-w-md bg-white rounded-[26px] shadow-[0_15px_35px_rgba(0,0,0,0.12)] border border-neutral-100">
+            <div class="w-full max-w-md bg-white rounded-lg shadow-[0_15px_35px_rgba(0,0,0,0.12)] border border-neutral-100">
                 <div class="text-center border-b border-gray-200 px-10 pt-10 pb-8">
                     <a href="/" class="inline-block">
-                        <span class="brand-font text-3xl  text-gray-900">G-TECH</span>
+                        <img src="{{ asset('images/G-Tech5.png') }}" class="block w-32 fill-current text-gray-800" />
                     </a>
                 </div>
                 <div class="px-10 py-10">
