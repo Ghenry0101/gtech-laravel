@@ -454,6 +454,7 @@
                             {{ __('Nomor pesanan: :number', ['number' => $order->order_number]) }}
                         </p>
                     </section>
+                    @if ($order->order_status === 'completed' || $latestComplaint)
                     <section class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -646,12 +647,9 @@
                             <div class="mt-5 rounded-md border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
                                 {{ __('Komplain Anda sedang ditinjau oleh admin pengiriman.') }}
                             </div>
-                        @elseif (! in_array($order->order_status, ['shipped', 'completed'], true))
-                            <div class="mt-5 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
-                                {{ __('Komplain dapat diajukan setelah pesanan dikirim.') }}
-                            </div>
                         @endif
                     </section>
+                    @endif
                     @if ($order->order_status === 'completed')
                         <section id="order-review-section" class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
