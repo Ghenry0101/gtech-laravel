@@ -59,6 +59,9 @@ $homePage = function () {
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 Route::get('/', $homePage);
 Route::get('/home', $homePage)->name('home');
+Route::view('/kebijakan', 'kebijakan')->name('policies.kebijakan');
+Route::view('/bantuan', 'bantuan')->name('policies.bantuan');
+Route::view('/policies', 'policies')->name('policies.index');
 
 Route::get('/products/{product:slug}', [StorefrontProductController::class, 'show'])
     ->name('products.show');

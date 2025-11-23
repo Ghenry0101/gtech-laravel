@@ -14,12 +14,20 @@
         && (! $expiresAt || now()->lessThan($expiresAt));
     $expiryLabel = $expiresAt ? $expiresAt->format('d M Y H:i') : null;
     $shipment = $order->shipment;
+    $deliveryEstimationLabel = \App\Support\ShipmentFormatter::formatEstimation($shipment) ?? __('5 hari');
     $trackingEvents = $shipment?->trackings?->sortBy('recorded_at')->values() ?? collect();
     $trackingStatusLabels = [
         'courier_allocated' => __('Kurir ditemukan'),
         'picking_up' => __('Kurir menuju lokasi pickup'),
         'picked' => __('Barang dijemput kurir'),
-        'delivering' => __('Menuju pelanggan'),
+        'on_the_way' => __('Sedang dikirim / dalam perjalanan'),
+        'delivering' => __('Sedang dikirim / dalam perjalanan'),
+        'on_delivery' => __('Sedang dikirim / dalam perjalanan'),
+        'in_transit' => __('Sedang dikirim / dalam perjalanan'),
+        'shipped' => __('Sedang dikirim / dalam perjalanan'),
+        'dropping_off' => __('Sedang dikirim / dalam perjalanan'),
+        'dropping_off_item' => __('Sedang dikirim / dalam perjalanan'),
+        'out_for_delivery' => __('Sedang dikirim / dalam perjalanan'),
         'delivered' => __('Berhasil dikirim'),
     ];
     $latestTrackingStatus = $trackingEvents->last()?->status;
@@ -35,8 +43,8 @@
     $totalWeightGram = (int) $order->items->sum(fn ($item) => (int) ($item->product?->weight ?? 0) * max(1, $item->quantity));
     $totalWeightKg = $totalWeightGram > 0 ? number_format($totalWeightGram / 1000, 2) : '0.00';
     $shippingCostValue = $order->shipping_cost ?? $shipment?->shipping_cost ?? 0;
-    $inTransitStatuses = ['courier_allocated', 'picking_up', 'picked', 'delivering', 'delivered', 'shipped'];
-    $shouldShowDriver = $shipment && in_array($shipment->status, $inTransitStatuses, true);
+    $driverVisibleStatuses = ['on_the_way', 'delivering', 'delivered'];
+    $shouldShowDriver = $shipment && in_array($shipment->status, $driverVisibleStatuses, true);
     $driverDefaults = [
         'name' => 'John Doe',
         'phone' => '08123456789',
@@ -65,7 +73,11 @@
                     <form method="POST" action="{{ route('orders.complete', $order) }}">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-600">
+                        <button
+                            type="submit"
+                            class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-600"
+                            onclick="return confirm('{{ __('Apakah Anda yakin pesanan sudah diterima dan ingin menandainya sebagai selesai?') }}')"
+                        >
                             {{ __('Tandai Pesanan Selesai') }}
                         </button>
                     </form>
@@ -298,6 +310,12 @@
                                         <dd class="text-sm font-semibold text-slate-900">{{ $trackingStatusLabel }}</dd>
                                     </div>
                                     <div>
+                                        <dt class="text-[11px] uppercase text-slate-500">{{ __('Estimasi Sampai') }}</dt>
+                                        <dd class="text-sm font-semibold text-slate-900">
+                                            {{ $deliveryEstimationLabel ? __(":range sampai", ['range' => $deliveryEstimationLabel]) : __('Belum tersedia') }}
+                                        </dd>
+                                    </div>
+                                    <div>
                                         <dt class="text-[11px] uppercase text-slate-500">{{ __('Tanggal Order') }}</dt>
                                         <dd class="text-sm font-semibold text-slate-900">{{ $orderDateLabel }}</dd>
                                     </div>
@@ -340,7 +358,8 @@
                                         @php
                                             $recordedAt = $event->recorded_at ? $event->recorded_at->format('d-m-Y H:i:s') : '-';
                                             $eventLabel = $trackingStatusLabels[$event->status] ?? \Illuminate\Support\Str::headline($event->status);
-                                            $description = $event->description ?: $eventLabel;
+                                            // Untuk konsistensi UX, gunakan label internal sebagai deskripsi utama
+                                            $description = $eventLabel;
                                         @endphp
                                         <div class="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
                                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $recordedAt }}</p>

@@ -9,14 +9,13 @@
     $summaryItems = (int) ($summary['items'] ?? 0);
     $summarySubtotal = (float) ($summary['subtotal'] ?? 0);
     $summaryProducts = (int) ($summary['total_products'] ?? 0);
-    $shippingEstimate = $summaryItems > 0 ? 15000 : 0;
   @endphp
 
   <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 font-aerospace">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-xs uppercase tracking-wider text-slate-400">{{ __('Keranjang Saya') }}</p>
-        <h1 class="text-2xl font-medium text-slate-900">our cart</h1>
+        <h1 class="text-2xl font-medium text-slate-900">{{ __('Keranjang Anda') }}</h1>
       </div>
       <a href="{{ route('home') }}" class="text-sm text-slate-500 hover:text-slate-700">{{ __('Lanjut belanja') }}</a>
     </div>
@@ -127,7 +126,7 @@
                         value="{{ (int) $item->quantity }}"
                       >
                       <button type="button" class="qty-plus w-7 h-7 grid place-items-center rounded-md border text-slate-600 hover:bg-slate-50">+</button>
-                      <span class="text-[11px] text-slate-500 ml-2">QTY</span>
+                      <span class="text-[11px] text-slate-500 ml-2">{{ __('Jumlah') }}</span>
                     </form>
                   </div>
 
@@ -146,8 +145,8 @@
 
       <aside class="bg-white border rounded-xl shadow-[0_6px_20px_-6px_rgba(0,0,0,.15)] p-5 h-fit sticky top-20 space-y-5">
         <div>
-          <h2 class="font-medium text-slate-900">OUR CART</h2>
-          <p class="text-xs text-slate-500">{{ __('Ringkasan cepat keranjangmu.') }}</p>
+          <h2 class="font-medium text-slate-900">{{ __('Ringkasan Keranjang') }}</h2>
+          <p class="text-xs text-slate-500">{{ __('Lihat total belanja dan lanjutkan ke pembayaran.') }}</p>
         </div>
 
         <div class="space-y-2 text-sm text-slate-600">
@@ -159,14 +158,10 @@
             <span>{{ __('Subtotal') }}</span>
             <span id="subtotal" class="font-extrabold text-slate-900">{{ $formatCurrency($summarySubtotal) }}</span>
           </div>
-          <div class="flex justify-between text-slate-500">
-            <span>{{ __('Estimasi ongkir') }}</span>
-            <span id="shipping">{{ $formatCurrency($shippingEstimate) }}</span>
-          </div>
           <hr class="my-2">
           <div class="flex justify-between text-lg text-slate-900">
             <span class="font-medium">{{ __('Total') }}</span>
-            <span id="grandTotal" class="font-extrabold">{{ $formatCurrency($summarySubtotal + $shippingEstimate) }}</span>
+            <span id="grandTotal" class="font-extrabold">{{ $formatCurrency($summarySubtotal) }}</span>
           </div>
         </div>
 
@@ -174,12 +169,12 @@
                 data-href="{{ route('checkout.index') }}"
                 class="w-full h-11 rounded-lg bg-slate-900 text-white font-medium disabled:opacity-40"
                 {{ $cartItems->isEmpty() ? 'disabled' : '' }}>
-          {{ __('checkout') }}
+          {{ __('Lanjut ke Checkout') }}
         </button>
 
         <a href="{{ route('orders.index') }}"
            class="w-full inline-flex justify-center h-11 items-center rounded-lg border font-medium hover:bg-slate-50">
-          {{ __('Riwayat') }}
+          {{ __('Riwayat Pesanan') }}
         </a>
       </aside>
     </div>
@@ -223,13 +218,9 @@
         }
       });
 
-      const shippingRate = 15000;
-      const shipping = selectedQty > 0 ? shippingRate : 0;
-
       document.getElementById('selCount').textContent = selectedQty.toLocaleString('id-ID');
       document.getElementById('subtotal').textContent = money(subtotal);
-      document.getElementById('shipping').textContent = money(shipping);
-      document.getElementById('grandTotal').textContent = money(subtotal + shipping);
+      document.getElementById('grandTotal').textContent = money(subtotal);
 
       const checkoutBtn = document.getElementById('checkoutBtn');
       if (checkoutBtn) {

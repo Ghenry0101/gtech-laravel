@@ -263,10 +263,10 @@ class BiteshipWebhookController extends Controller
             'driver_name' => $this->extractDriverField($payload, ['driver_name', 'name']),
             'driver_phone' => $this->extractDriverField($payload, ['driver_phone', 'phone', 'phone_number']),
             'driver_plate_number' => $this->extractDriverField($payload, ['driver_plate_number', 'vehicle_number', 'plate_number']),
-            'status' => $status ?? $shipment->status,
+            'status' => $this->normalizeStatus($status ?? $shipment->status),
         ];
 
-        if ($status && $status !== 'processing' && ! $shipment->shipped_at) {
+        if ($status && in_array($status, ['on_the_way', 'delivering', 'delivered', 'shipped'], true) && ! $shipment->shipped_at) {
             $updates['shipped_at'] = $latestRecordedAt ?? now();
         }
 
@@ -275,6 +275,24 @@ class BiteshipWebhookController extends Controller
         }
 
         return array_filter($updates, fn ($value) => $value !== null);
+    }
+
+    protected function normalizeStatus(?string $status): string
+    {
+        $allowed = [
+            'processing',
+            'courier_allocated',
+            'picking_up',
+            'picked',
+            'on_the_way',
+            'delivering',
+            'delivered',
+            'failed',
+        ];
+
+        $status = strtolower((string) $status);
+
+        return in_array($status, $allowed, true) ? $status : 'processing';
     }
 
     protected function syncOrderStatus(Shipment $shipment, ?string $shipmentStatus): void
@@ -286,7 +304,8 @@ class BiteshipWebhookController extends Controller
         }
 
         $mappedOrderStatus = match ($shipmentStatus) {
-            'courier_allocated', 'picking_up', 'picked', 'delivering' => 'shipped',
+            'courier_allocated', 'picking_up', 'picked' => 'processing',
+            'delivering', 'shipped', 'on_the_way' => 'shipped',
             'delivered' => 'completed',
             default => null,
         };
@@ -366,11 +385,18 @@ class BiteshipWebhookController extends Controller
         $normalized = strtolower((string) $status);
 
         return match ($normalized) {
-            'confirmed', 'allocated' => 'courier_allocated',
+            'confirmed', 'allocated' => 'processing',
             'courier_allocated' => 'courier_allocated',
             'picking_up', 'starting_pickup', 'on_pickup' => 'picking_up',
             'picked', 'picked_up' => 'picked',
-            'delivering', 'on_delivery' => 'delivering',
+            'delivering',
+            'in_transit',
+            'shipped',
+            'on_delivery',
+            'dropping_off',
+            'dropping_off_item',
+            'on_the_way',
+            'out_for_delivery' => 'on_the_way',
             'delivered' => 'delivered',
             default => null,
         };

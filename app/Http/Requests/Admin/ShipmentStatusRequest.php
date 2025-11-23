@@ -17,10 +17,8 @@ class ShipmentStatusRequest extends FormRequest
         return [
             'status' => [
                 'required',
-                Rule::in(['processing', 'courier_allocated', 'picking_up', 'picked', 'delivering', 'delivered', 'shipped']),
+                Rule::in(['processing', 'courier_allocated', 'picking_up', 'picked', 'on_the_way', 'delivering', 'delivered', 'shipped']),
             ],
-            'tracking_id' => ['nullable', 'string', 'max:160'],
-            'waybill_id' => ['nullable', 'string', 'max:160'],
         ];
     }
 }

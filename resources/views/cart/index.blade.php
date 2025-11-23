@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-xs uppercase tracking-widest text-slate-400">{{ __('Keranjang Saya') }}</p>
-                <h2 class="text-2xl font-semibold text-slate-900">Our Cart</h2>
+                <h2 class="text-2xl font-semibold text-slate-900">{{ __('Keranjang Anda') }}</h2>
             </div>
             <a href="{{ route('home') }}" class="text-sm font-medium text-slate-500 hover:text-slate-700">
                 {{ __('Lanjut belanja') }}
@@ -19,7 +19,6 @@
         $summaryItems = (int) ($summary['items'] ?? 0);
         $summarySubtotal = (float) ($summary['subtotal'] ?? 0);
         $summaryProducts = (int) ($summary['total_products'] ?? 0);
-        $shippingEstimate = $summaryItems > 0 ? 15000 : 0;
     @endphp
 
     <div class="py-10">
@@ -46,7 +45,7 @@
                 </div>
             @else
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <section id="cartList" data-shipping="{{ $shippingEstimate }}" class="space-y-4 lg:col-span-2">
+                    <section id="cartList" class="space-y-4 lg:col-span-2">
                         @foreach ($cartItems as $item)
                             @php
                                 $product = $item->product;
@@ -167,14 +166,10 @@
                                 <dt>{{ __('Subtotal') }}</dt>
                                 <dd id="summarySubtotal" class="font-semibold text-slate-900">{{ $formatCurrency($summarySubtotal) }}</dd>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <dt>{{ __('Estimasi ongkir') }}</dt>
-                                <dd id="summaryShipping">{{ $formatCurrency($shippingEstimate) }}</dd>
-                            </div>
                             <hr class="my-3">
                             <div class="flex items-center justify-between text-base">
                                 <dt class="font-semibold text-slate-900">{{ __('Total') }}</dt>
-                                <dd id="summaryTotal" class="text-xl font-extrabold text-slate-900">{{ $formatCurrency($summarySubtotal + $shippingEstimate) }}</dd>
+                                <dd id="summaryTotal" class="text-xl font-extrabold text-slate-900">{{ $formatCurrency($summarySubtotal) }}</dd>
                             </div>
                         </dl>
 
@@ -212,7 +207,6 @@
                     }
 
                     const numberFormat = new Intl.NumberFormat('id-ID');
-                    const shippingRate = Number(cartList.dataset.shipping || 15000);
 
                     function money(value) {
                         const safe = Number(value) || 0;
@@ -266,8 +260,6 @@
                             }
                         });
 
-                        const shipping = totalQty > 0 ? shippingRate : 0;
-
                         const itemsEl = document.getElementById('summaryItems');
                         if (itemsEl) {
                             itemsEl.textContent = numberFormat.format(totalQty);
@@ -278,14 +270,9 @@
                             subtotalEl.textContent = money(subtotal);
                         }
 
-                        const shippingEl = document.getElementById('summaryShipping');
-                        if (shippingEl) {
-                            shippingEl.textContent = money(shipping);
-                        }
-
                         const totalEl = document.getElementById('summaryTotal');
                         if (totalEl) {
-                            totalEl.textContent = money(subtotal + shipping);
+                            totalEl.textContent = money(subtotal);
                         }
 
                         const checkoutBtn = document.getElementById('checkoutButton');

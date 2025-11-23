@@ -60,7 +60,5 @@
     </section>
 
   </main>
-
-  @include('partials.footer')
 </body>
 </x-app-layout>
