@@ -59,6 +59,22 @@ if (root) {
         shippingContainer.innerHTML = '';
         shippingError.classList.add('hidden');
 
+        const allowedCouriers = ['jne', 'jnt', 'j&t', 'tiki'];
+        const filteredOptions = state.shippingOptions.filter((option) => {
+            const name = `${option.courier_service_name || ''} ${option.courier_description || ''}`.toLowerCase();
+            const code = `${option.courier_service_code || ''} ${option.courier_code || ''}`.toLowerCase();
+            const type = `${option.raw?.type || option.type || option.courier_type || ''}`.toLowerCase();
+            const combined = `${name} ${code} ${type}`;
+
+            const courierKey = (option.courier_company || option.courier_code || '').toLowerCase();
+            const isAllowedCourier = allowedCouriers.some((allowed) => courierKey.includes(allowed));
+            const isRegularType = !/(instant|same ?day|sameday|next ?day|nextday|besok)/.test(combined);
+
+            return isAllowedCourier && isRegularType;
+        });
+
+        state.shippingOptions = filteredOptions;
+
         if (!state.shippingOptions.length) {
             shippingEmpty.classList.remove('hidden');
             state.selectedShipping = null;
