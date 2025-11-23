@@ -54,7 +54,7 @@
         </div>
 
         <div class="mt-10 flex flex-col gap-2 border-t border-slate-800 pt-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {{ date('Y') }} {{ config('app.name', 'GTech') }}. Semua hak dilindungi.</p>
+            <p>© 2025 GTECH UKOM</p>
         </div>
     </div>
 </footer>
