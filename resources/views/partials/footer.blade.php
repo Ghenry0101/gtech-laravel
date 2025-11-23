@@ -32,5 +32,4 @@
       </div>
     </div>
   </div>
-  <div class="border-t border-white/10 py-4 text-center text-xs text-gray-400">© 2025 GTech. All rights reserved.</div>
 </footer>
