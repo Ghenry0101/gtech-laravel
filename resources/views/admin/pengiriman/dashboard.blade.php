@@ -251,27 +251,7 @@
                                         <a href="{{ route('admin.shipping.orders.show', $order) }}" class="inline-flex items-center justify-center rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900">
                                             {{ __('Detail') }}
                                         </a>
-                                        @if (in_array($order->order_status, ['pending', 'processing'], true))
-                                            <form method="POST" action="{{ route('admin.shipping.orders.status.update', $order) }}">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="shipped">
-                                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600">
-                                                    {{ __('Tandai Sedang Dikirim') }}
-                                                </button>
-                                            </form>
-                                        @elseif ($order->order_status === 'shipped')
-                                            <form method="POST" action="{{ route('admin.shipping.orders.status.update', $order) }}">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="delivered">
-                                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600">
-                                                    {{ __('Tandai Selesai') }}
-                                                </button>
-                                            </form>
-                                        @else
-                                            <span class="text-center text-xs text-emerald-600">{{ __('Selesai') }}</span>
-                                        @endif
+                                        <span class="text-center text-[11px] font-semibold text-slate-400">{{ __('Status dikendalikan otomatis') }}</span>
                                     </div>
                                 </td>
                             </tr>

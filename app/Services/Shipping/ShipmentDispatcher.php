@@ -137,12 +137,13 @@ class ShipmentDispatcher
                 ?? data_get($response, 'courier.waybill_id')
                 ?? ($shipment->waybill_id ?: $trackingId);
             $mappedShipmentStatus = $this->mapShipmentStatus(data_get($response, 'status'));
+            $normalizedStatus = $this->normalizeStatus($mappedShipmentStatus ?? $shipment->status ?? 'processing');
 
             $shipment->forceFill([
                 'biteship_order_id' => $response['id'] ?? $response['order_id'] ?? $shipment->biteship_order_id,
                 'tracking_id' => $trackingId,
                 'waybill_id' => $waybillId,
-                'status' => $mappedShipmentStatus ?? $shipment->status ?? 'processing',
+                'status' => $normalizedStatus,
                 'rate_payload' => array_merge($shipment->rate_payload ?? [], ['order' => $response]),
                 'shipped_at' => $shipment->shipped_at ?? now(),
             ])->save();
@@ -199,15 +200,41 @@ class ShipmentDispatcher
         $status = strtolower((string) $status);
 
         return match ($status) {
-            'confirmed', 'pending', 'ready_to_pickup', 'waiting_assignment', 'awaiting_pickup' => 'processing',
-            'allocated', 'courier_allocated' => 'courier_allocated',
+            'confirmed', 'allocated', 'pending', 'ready_to_pickup', 'waiting_assignment', 'awaiting_pickup' => 'processing',
+            'courier_allocated' => 'courier_allocated',
             'picking_up', 'starting_pickup', 'on_pickup', 'courier_pickup' => 'picking_up',
             'picked', 'picked_up' => 'picked',
-            'delivering', 'on_delivery', 'in_transit', 'reg' => 'delivering',
+            'delivering',
+            'in_transit',
+            'shipped',
+            'on_delivery',
+            'dropping_off',
+            'dropping_off_item',
+            'on_the_way',
+            'out_for_delivery',
+            'reg' => 'on_the_way',
             'delivered', 'complete', 'completed' => 'delivered',
             'failed', 'cancelled', 'canceled' => 'failed',
             default => null,
         };
+    }
+
+    protected function normalizeStatus(?string $status): string
+    {
+        $allowed = [
+            'processing',
+            'courier_allocated',
+            'picking_up',
+            'picked',
+            'on_the_way',
+            'delivering',
+            'delivered',
+            'failed',
+        ];
+
+        $status = strtolower((string) $status);
+
+        return in_array($status, $allowed, true) ? $status : 'processing';
     }
 
     protected function determineDeliveryType(array $ratePayload, string $courierType): ?string

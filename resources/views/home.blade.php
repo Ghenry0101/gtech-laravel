@@ -138,5 +138,4 @@
             @include('components.product-grid', ['items' => $latest ?? []])
         </section>
     </section>
-    @include('partials.footer')
 </x-app-layout>
