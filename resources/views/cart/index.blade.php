@@ -24,22 +24,22 @@
     <div class="py-10">
         <div class="mx-auto max-w-8xl space-y-6 px-4 sm:px-6 lg:px-8">
             @if ($errors->has('cart'))
-                <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-sm">
+                <div class="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-sm">
                     {{ $errors->first('cart') }}
                 </div>
             @endif
 
             @if (session('status'))
-                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
+                <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
                     {{ session('status') }}
                 </div>
             @endif
 
             @if ($cartItems->isEmpty())
-                <div class="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
+                <div class="rounded-md border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
                     <p class="text-lg font-semibold text-slate-800">{{ __('Keranjang masih kosong.') }}</p>
                     <p class="mt-2 text-sm text-slate-500">{{ __('Cari produk menarik dan tambahkan ke keranjangmu.') }}</p>
-                    <a href="{{ route('home') }}" class="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-slate-800">
+                    <a href="{{ route('home') }}" class="mt-6 inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-slate-800">
                         {{ __('Cari Produk') }}
                     </a>
                 </div>
@@ -55,10 +55,10 @@
                                 $productUrl = $product ? route('products.show', $product->slug) : null;
                                 $maxQuantity = max($product?->stock ?? $item->quantity, 1);
                             @endphp
-                            <article class="cart-row rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-price="{{ $price }}">
+                            <article class="cart-row rounded-md border border-slate-200 bg-white p-5 shadow-sm" data-price="{{ $price }}">
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-[96px_1fr_auto] sm:items-center">
                                     <div class="flex items-start gap-4 sm:block">
-                                        <div class="h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                        <div class="h-24 w-24 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
                                             <img src="{{ $imagePath }}" alt="{{ $product?->name ?? __('Produk tidak tersedia') }}" class="h-full w-full object-cover">
                                         </div>
                                     </div>
@@ -100,13 +100,13 @@
                                         <div class="flex flex-wrap items-center gap-3">
                                             <form method="POST"
                                                   action="{{ route('cart.update', $item) }}"
-                                                  class="qty-form inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5"
+                                                  class="qty-form inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5"
                                                   data-auto-submit="true">
                                                 @csrf
                                                 @method('PATCH')
 
                                                 <button type="button"
-                                                        class="qty-step inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-lg font-semibold text-slate-700 transition hover:border-slate-300"
+                                                        class="qty-step inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-lg font-semibold text-slate-700 transition hover:border-slate-300"
                                                         data-step="-1"
                                                         aria-label="{{ __('Kurangi jumlah') }}">
                                                     &minus;
@@ -119,11 +119,11 @@
                                                     max="{{ $maxQuantity }}"
                                                     data-max="{{ $maxQuantity }}"
                                                     value="{{ (int) $item->quantity }}"
-                                                    class="qty-input h-8 w-16 rounded-lg border border-transparent bg-white text-center text-sm font-semibold text-slate-800 focus:border-slate-300 focus:outline-none"
+                                                    class="qty-input h-8 w-16 rounded-md border border-transparent bg-white text-center text-sm font-semibold text-slate-800 focus:border-slate-300 focus:outline-none"
                                                 >
 
                                                 <button type="button"
-                                                        class="qty-step inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-lg font-semibold text-slate-700 transition hover:border-slate-300"
+                                                        class="qty-step inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-lg font-semibold text-slate-700 transition hover:border-slate-300"
                                                         data-step="1"
                                                         aria-label="{{ __('Tambah jumlah') }}">
                                                     +
@@ -147,7 +147,7 @@
                         @endforeach
                     </section>
 
-                    <aside class="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <aside class="space-y-5 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
                         <div>
                             <p class="text-xs uppercase tracking-wide text-slate-400">{{ __('Ringkasan') }}</p>
                             <h3 class="text-xl font-semibold text-slate-900">{{ __('Total Belanja') }}</h3>
@@ -178,7 +178,7 @@
                                 <button
                                     id="checkoutButton"
                                     type="submit"
-                                    class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-40"
+                                    class="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-40"
                                     @disabled($cartItems->isEmpty())
                                 >
                                     {{ __('Lanjut ke Checkout') }}
@@ -186,7 +186,7 @@
                             </form>
                             <a
                                 href="{{ route('orders.index') }}"
-                                class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                class="inline-flex w-full items-center justify-center rounded-md border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                             >
                                 {{ __('Lihat Riwayat Pesanan') }}
                             </a>

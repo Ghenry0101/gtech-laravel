@@ -68,7 +68,7 @@
         </section>
 
         <section>
-            <h2 class="text-center font-extrabold tracking-wide text-lg md:text-xl mb-4">
+            <h2 class="text-center font-extrabold tracking-wide text-lg md:text-xl mb-6">
                 OUR CATEGORIES
             </h2>
 
@@ -94,7 +94,7 @@
                 @endif
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
                 @foreach ($gridCategories as $cat)
                     @if ($cat['available'])
                         <a href="{{ route('products.index', $cat['slug']) }}"
