@@ -52,7 +52,7 @@ return [
         'all-product' => 'images/PcBan.png',
         'components' => 'images/bayangan-4.png',
         'pc-gaming' => 'images/PcBan.png',
-        'gaming' => 'images/PcBan.png',
+        'gaming' => 'images/PcG1.png',
         'pc-office' => 'images/PcOffice.png',
         'pc_office' => 'images/PcOffice.png',
         'office' => 'images/PcOffice.png',
