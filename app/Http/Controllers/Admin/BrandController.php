@@ -6,28 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBrandRequest;
 use App\Http\Requests\Admin\UpdateBrandRequest;
 use App\Models\Brand;
+use App\Services\Admin\BrandService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class BrandController extends Controller
 {
+    public function __construct(
+        private readonly BrandService $brands
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $search = trim($request->string('search')->toString());
 
-        $brands = Brand::query()
-            ->withCount('products')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->paginate(12)
-            ->withQueryString();
+        $brands = $this->brands->paginate($search);
 
         return view('admin.barang.brands.index', compact('brands', 'search'));
     }
@@ -39,13 +34,7 @@ class BrandController extends Controller
 
     public function store(StoreBrandRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
-        }
-
-        Brand::create($data);
+        $this->brands->create($request->validated(), $request->file('logo'));
 
         return redirect()
             ->route('admin.barang.brands.index')
@@ -59,16 +48,7 @@ class BrandController extends Controller
 
     public function update(UpdateBrandRequest $request, Brand $brand): RedirectResponse
     {
-        $data = $request->validated();
-
-        if ($request->hasFile('logo')) {
-            if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
-            }
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
-        }
-
-        $brand->update($data);
+        $this->brands->update($brand, $request->validated(), $request->file('logo'));
 
         return redirect()
             ->route('admin.barang.brands.index')
@@ -77,17 +57,11 @@ class BrandController extends Controller
 
     public function destroy(Brand $brand): RedirectResponse
     {
-        if ($brand->products()->exists()) {
+        if (! $this->brands->delete($brand)) {
             return back()->withErrors([
                 'brand' => __('Brand tidak dapat dihapus karena masih dipakai produk.'),
             ]);
         }
-
-        if ($brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
-        }
-
-        $brand->delete();
 
         return redirect()
             ->route('admin.barang.brands.index')

@@ -6,21 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Services\Admin\CategoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly CategoryService $categories
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $search = trim($request->string('search')->toString());
-        $categories = Category::query()
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%")
-                ->orWhere('slug', 'like', "%{$search}%"))
-            ->orderByDesc('created_at')
-            ->paginate(12)
-            ->withQueryString();
+        $categories = $this->categories->paginate($search);
 
         return view('admin.barang.categories.index', compact('categories', 'search'));
     }
@@ -32,10 +33,7 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $data['is_active'] = $request->boolean('is_active');
-
-        Category::create($data);
+        $this->categories->create($request->validated(), $request->boolean('is_active'));
 
         return redirect()
             ->route('admin.barang.categories.index')
@@ -49,10 +47,7 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $data = $request->validated();
-        $data['is_active'] = $request->boolean('is_active');
-
-        $category->update($data);
+        $this->categories->update($category, $request->validated(), $request->boolean('is_active'));
 
         return redirect()
             ->route('admin.barang.categories.index')
@@ -61,17 +56,14 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        if ($category->products()->exists()) {
+        if (! $this->categories->delete($category)) {
             return back()->withErrors([
                 'category' => __('Kategori tidak dapat dihapus karena masih dipakai produk.'),
             ]);
         }
-
-        $category->delete();
 
         return redirect()
             ->route('admin.barang.categories.index')
             ->with('status', __('Kategori berhasil dihapus.'));
     }
 }
-
