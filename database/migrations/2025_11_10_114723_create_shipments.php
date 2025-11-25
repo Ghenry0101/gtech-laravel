@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('waybill_id', 150)->nullable();
             $table->string('biteship_order_id', 100)->nullable();
             $table->decimal('shipping_cost', 12, 2)->default(0);
-            $table->enum('status', ['processing','shipped','delivered','failed'])->default('processing');
+            $table->string('status')->default('processing');
             $table->integer('estimation_days')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
