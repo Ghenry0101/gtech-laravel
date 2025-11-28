@@ -16,6 +16,7 @@ class SearchController extends Controller
             $params['q'] = $query;
         }
 
+        // Keeping search logic as a redirect keeps the navigation responsive: the product grid controller receives the query and builds the list.
         return redirect()->route('products.index', $params);
     }
 }

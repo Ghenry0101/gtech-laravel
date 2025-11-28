@@ -34,6 +34,8 @@ class ProductController extends Controller
             $ratingFilter = null;
         }
 
+        // Product detail view gets a single source of truth from ProductBrowseService (related items + reviews + stats)
+        // so the Blade template can stay presentation-only when we present the page to clients.
         return view('products.show', $this->products->detailData($product, $ratingFilter));
     }
 }

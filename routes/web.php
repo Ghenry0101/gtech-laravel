@@ -68,6 +68,7 @@ Route::get('/products/{product:slug}', [StorefrontProductController::class, 'sho
 Route::get('/produks/{categorySlug?}', [StorefrontProductController::class, 'index'])
     ->name('products.index');
 
+// Authenticated shoppers: once login succeeds we unlock cart management and the Biteship area picker.
 Route::middleware('auth')->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
@@ -81,6 +82,7 @@ Route::get('/dashboard', $homePage, function () {
     return view('dashboard');
 })->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
+// Full purchase flow requires both auth + profile completeness (phone + address) before opening checkout/orders/profile/review.
 Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/shipping-rates', [CheckoutController::class, 'shippingRates'])->name('checkout.shipping-rates');

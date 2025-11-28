@@ -19,6 +19,7 @@ class OrderItemReviewService
     {
         $this->ensureCanReview($user, $orderItem, ensureReviewExists: false);
 
+        // Reviews double as user-facing testimonials, so we centralize rating/comment/image persistence here for easier walkthroughs in demos.
         $review = $orderItem->review()->create([
             'rating' => $data['rating'],
             'title' => $data['title'] ?? null,
@@ -110,4 +111,3 @@ class OrderItemReviewService
         }
     }
 }
-

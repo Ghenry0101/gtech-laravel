@@ -62,6 +62,10 @@ class ProfileAddressService
         abort_if($address->user_id !== $user->id, 403);
     }
 
+    /**
+     * Central place that syncs the user's manual form input with Biteship's canonical area data.
+     * This makes the client demo easier because every downstream feature (checkout, dashboard) trusts the same snapshot.
+     */
     private function mergeAreaData(array $data): array
     {
         $area = $this->fetchBiteshipArea($data['biteship_area_id'] ?? '');
@@ -84,6 +88,7 @@ class ProfileAddressService
         }
 
         try {
+            // Direct API call ensures the stored snapshot already conforms to Biteship so shipping rates never reject the address during demos.
             $area = BiteshipService::make()->getAreaDetail($areaId);
         } catch (\Throwable $throwable) {
             Log::error('Failed to fetch Biteship area detail.', [
@@ -105,4 +110,3 @@ class ProfileAddressService
         return $area;
     }
 }
-
