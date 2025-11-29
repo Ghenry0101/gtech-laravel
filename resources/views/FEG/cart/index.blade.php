@@ -122,6 +122,8 @@
                         min="1"
                         max="{{ max($product?->stock ?? $item->quantity, 1) }}"
                         name="quantity"
+                        inputmode="numeric"
+                        data-quantity-lock="true"
                         class="qty-input w-14 h-7 rounded-md border text-center text-sm"
                         value="{{ (int) $item->quantity }}"
                       >

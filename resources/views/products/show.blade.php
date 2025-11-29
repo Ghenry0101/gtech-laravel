@@ -85,6 +85,8 @@
                                             id="quantity"
                                             name="quantity"
                                             value="1"
+                                            inputmode="numeric"
+                                            data-quantity-lock="true"
                                             class="w-24 rounded-sm border-slate-300 text-center text-sm text-slate-900"
                                         >
                                         <span class="text-xs text-slate-200">{{ __('Tersisa :stock', ['stock' => number_format($product->stock)]) }}</span>

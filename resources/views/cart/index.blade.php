@@ -118,6 +118,8 @@
                                                     min="1"
                                                     max="{{ $maxQuantity }}"
                                                     data-max="{{ $maxQuantity }}"
+                                                    inputmode="numeric"
+                                                    data-quantity-lock="true"
                                                     value="{{ (int) $item->quantity }}"
                                                     class="qty-input h-8 w-16 rounded-lg border border-transparent bg-white text-center text-sm font-semibold text-slate-800 focus:border-slate-300 focus:outline-none"
                                                 >
